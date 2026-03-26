@@ -2,10 +2,10 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="accent_gold">#FFFFD700</color>
-    <color name="accent_blue">#FF00BFFF</color>
-    <color name="overlay_bg">#CC000000</color>
-    <color name="shutter_outer">#FFFFFFFF</color>
-    <color name="shutter_inner">#FFFFFFFF</color>
-    <color name="record_red">#FFFF0000</color>
+    <color name="orange">#FFFF8000</color>
+    <color name="orange_dim">#99FF8000</color>
+    <color name="overlay_dark">#CC000000</color>
+    <color name="overlay_mid">#88000000</color>
+    <color name="gray_text">#FFAAAAAA</color>
+    <color name="record_red">#FFFF2020</color>
 </resources>

@@ -33,7 +33,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     // Current settings state
     private var captureMode = CaptureMode.PHOTO
     private var currentLens = LensMode.WIDE
-    private var videoResolution = VideoResolution.UHD_4K
+    private var videoResolution = VideoResolution.FHD_1080P
     private var frameRate = FrameRate.FPS_30
     private var proSettings = ProSettings()
     private var colorProfile = ColorProfile.NATURAL
@@ -174,13 +174,16 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun updateLensButtons() {
+        val orange = 0xFFFF8000.toInt()
+        val dim = 0x88FFFFFF.toInt()
         listOf(
             binding.btnLensUltrawide to LensMode.ULTRAWIDE,
             binding.btnLensWide to LensMode.WIDE,
             binding.btnLensTele to LensMode.TELEPHOTO
         ).forEach { (btn, lens) ->
-            btn.alpha = if (lens == currentLens) 1.0f else 0.6f
-            btn.textSize = if (lens == currentLens) 14f else 12f
+            val active = lens == currentLens
+            btn.setTextColor(if (active) orange else dim)
+            btn.textSize = if (active) 14f else 12f
         }
     }
 
@@ -203,13 +206,15 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         binding.portraitPanel.isVisible = (mode == CaptureMode.PORTRAIT)
 
         // Update tab appearances
+        val orange = 0xFFFF8000.toInt()
+        val dim = 0x55FFFFFF.toInt()
         listOf(
             binding.tabPhoto to CaptureMode.PHOTO,
             binding.tabVideo to CaptureMode.VIDEO,
             binding.tabPortrait to CaptureMode.PORTRAIT,
             binding.tabPro to CaptureMode.PRO
         ).forEach { (tab, m) ->
-            tab.alpha = if (m == mode) 1.0f else 0.5f
+            tab.setTextColor(if (m == mode) orange else dim)
         }
 
         updateCaptureButton()
@@ -284,6 +289,20 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             isRawOn = !isRawOn
             cameraHandler.setRaw(isRawOn)
             binding.btnRaw.alpha = if (isRawOn) 1.0f else 0.6f
+            binding.btnRaw.text = if (isRawOn) "RAW" else "JPG"
+        }
+
+        binding.btnMenu.setOnClickListener {
+            // Cycle through color profiles as a quick settings shortcut
+            val profiles = ColorProfile.values()
+            val next = profiles[(colorProfile.ordinal + 1) % profiles.size]
+            colorProfile = next
+            cameraHandler.setColorProfile(colorProfile)
+            showSnack("Profile: ${colorProfile.label}")
+        }
+
+        binding.btnFlipCamera.setOnClickListener {
+            showSnack("Front camera not supported in Pro mode")
         }
     }
 
@@ -383,34 +402,49 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    /** Video controls: resolution + frame rate */
+    /** Video controls: resolution + frame rate via inline segmented buttons */
     private fun setupVideoControls() {
-        // Resolution
-        val resAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item,
-            VideoResolution.values().map { it.label })
-        resAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spinnerResolution.adapter = resAdapter
-        binding.spinnerResolution.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(p: AdapterView<*>, v: View?, pos: Int, id: Long) {
-                videoResolution = VideoResolution.values()[pos]
-                cameraHandler.setVideoResolution(videoResolution)
-            }
-            override fun onNothingSelected(p: AdapterView<*>) {}
-        }
+        // Resolution buttons
+        binding.btnRes720.setOnClickListener { setVideoResolution(VideoResolution.HD_720P) }
+        binding.btnRes1080.setOnClickListener { setVideoResolution(VideoResolution.FHD_1080P) }
+        binding.btnRes4k.setOnClickListener { setVideoResolution(VideoResolution.UHD_4K) }
 
-        // Frame Rate
-        val fpsAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item,
-            FrameRate.values().map { it.label })
-        fpsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spinnerFps.adapter = fpsAdapter
-        binding.spinnerFps.setSelection(1) // default 30fps
-        binding.spinnerFps.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(p: AdapterView<*>, v: View?, pos: Int, id: Long) {
-                frameRate = FrameRate.values()[pos]
-                cameraHandler.setFrameRate(frameRate)
-            }
-            override fun onNothingSelected(p: AdapterView<*>) {}
-        }
+        // FPS buttons
+        binding.btnFps30.setOnClickListener { setFrameRate(FrameRate.FPS_30) }
+        binding.btnFps60.setOnClickListener { setFrameRate(FrameRate.FPS_60) }
+        binding.btnFps120.setOnClickListener { setFrameRate(FrameRate.FPS_120) }
+
+        // Apply initial state
+        updateResolutionButtons()
+        updateFpsButtons()
+    }
+
+    private fun setVideoResolution(res: VideoResolution) {
+        videoResolution = res
+        cameraHandler.setVideoResolution(res)
+        updateResolutionButtons()
+    }
+
+    private fun setFrameRate(fps: FrameRate) {
+        frameRate = fps
+        cameraHandler.setFrameRate(fps)
+        updateFpsButtons()
+    }
+
+    private fun updateResolutionButtons() {
+        val orange = 0xFFFF8000.toInt()
+        val dim = 0x88FFFFFF.toInt()
+        binding.btnRes720.setTextColor(if (videoResolution == VideoResolution.HD_720P) orange else dim)
+        binding.btnRes1080.setTextColor(if (videoResolution == VideoResolution.FHD_1080P) orange else dim)
+        binding.btnRes4k.setTextColor(if (videoResolution == VideoResolution.UHD_4K) orange else dim)
+    }
+
+    private fun updateFpsButtons() {
+        val orange = 0xFFFF8000.toInt()
+        val dim = 0x88FFFFFF.toInt()
+        binding.btnFps30.setTextColor(if (frameRate == FrameRate.FPS_30) orange else dim)
+        binding.btnFps60.setTextColor(if (frameRate == FrameRate.FPS_60) orange else dim)
+        binding.btnFps120.setTextColor(if (frameRate == FrameRate.FPS_120) orange else dim)
     }
 
     /** Pinch-to-zoom */

@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <!-- ── Camera Preview ─────────────────────────────────── -->
+    <!-- ── Full-screen Camera Preview ───────────────────── -->
     <TextureView
         android:id="@+id/textureView"
         android:layout_width="0dp"
@@ -17,7 +17,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- ── Overlay (grid, focus ring, level) ──────────────── -->
     <com.adiopsweb.camera.ui.OverlayView
         android:id="@+id/overlayView"
         android:layout_width="0dp"
@@ -27,20 +26,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- ── Capture flash overlay ──────────────────────────── -->
     <View
         android:id="@+id/captureFlash"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="#CCFFFFFF"
-        android:alpha="0.8"
+        android:background="#FFFFFFFF"
+        android:alpha="0.85"
         android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- ── Top Control Bar ────────────────────────────────── -->
+    <!-- ══════════════ TOP BAR ══════════════════════════════ -->
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="0dp"
@@ -49,103 +47,114 @@
         android:gravity="center_vertical"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:background="#66000000"
+        android:background="#CC000000"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- Flash -->
         <Button
             android:id="@+id/btnFlash"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:text="⚡"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:alpha="0.6"
+            android:textSize="18sp"
+            android:textColor="#66FFFFFF"
             android:minWidth="0dp"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp" />
+            android:padding="0dp" />
 
+        <!-- HDR badge -->
         <Button
             android:id="@+id/btnHdr"
             style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="44dp"
             android:text="HDR"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
-            android:alpha="0.6"
+            android:textColor="#66FFFFFF"
+            android:textSize="11sp"
+            android:letterSpacing="0.08"
             android:minWidth="0dp"
             android:paddingStart="8dp"
             android:paddingEnd="8dp" />
 
-        <Button
-            android:id="@+id/btnGrid"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="⊞"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:alpha="0.6"
-            android:minWidth="0dp"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp" />
-
+        <!-- RAW badge -->
         <Button
             android:id="@+id/btnRaw"
             style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="RAW"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
-            android:alpha="0.6"
+            android:layout_height="44dp"
+            android:text="JPG"
+            android:textColor="#66FFFFFF"
+            android:textSize="11sp"
+            android:letterSpacing="0.08"
             android:minWidth="0dp"
             android:paddingStart="8dp"
             android:paddingEnd="8dp" />
 
-        <View android:layout_width="0dp" android:layout_height="0dp"
-            android:layout_weight="1" />
+        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
 
-        <!-- Recording indicator -->
+        <!-- Recording dot -->
         <View
             android:id="@+id/recordingIndicator"
-            android:layout_width="12dp"
-            android:layout_height="12dp"
-            android:background="#FFFF0000"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:background="#FFFF2020"
             android:visibility="gone"
             android:layout_marginEnd="8dp" />
 
+        <!-- Grid toggle -->
+        <Button
+            android:id="@+id/btnGrid"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:text="⊞"
+            android:textColor="#66FFFFFF"
+            android:textSize="20sp"
+            android:minWidth="0dp"
+            android:padding="0dp" />
+
+        <!-- Menu / settings -->
+        <Button
+            android:id="@+id/btnMenu"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:text="≡"
+            android:textColor="#66FFFFFF"
+            android:textSize="22sp"
+            android:minWidth="0dp"
+            android:padding="0dp" />
+
     </LinearLayout>
 
-    <!-- ── Zoom Level Label ───────────────────────────────── -->
+    <!-- ── Zoom level pill (centre, auto-hides) ─────────── -->
     <TextView
         android:id="@+id/tvZoomLevel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="1.0×"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:background="#66000000"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
+        android:textColor="#FFFFFFFF"
+        android:textSize="14sp"
+        android:background="#88000000"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/topBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="12dp" />
 
-    <!-- ── Pro Mode Panel ─────────────────────────────────── -->
+    <!-- ══════════ PRO MODE PANEL (top slide-down) ══════════ -->
     <ScrollView
         android:id="@+id/proPanel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        android:background="#CC000000"
+        android:background="#E6000000"
         app:layout_constraintTop_toBottomOf="@id/topBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -154,269 +163,257 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="12dp">
+            android:padding="16dp">
 
-            <!-- ISO -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
                 android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
                 <TextView android:layout_width="80dp" android:layout_height="wrap_content"
-                    android:text="ISO" android:textColor="#FFFFFF" android:textSize="13sp" />
+                    android:text="ISO" android:textColor="#88FFFFFF" android:textSize="11sp" android:letterSpacing="0.1" />
                 <Spinner android:id="@+id/spinnerIso" android:layout_width="0dp"
                     android:layout_height="wrap_content" android:layout_weight="1"
-                    android:backgroundTint="#FFFFFF" android:popupBackground="#333333" />
+                    android:backgroundTint="#FFFF8000" android:popupBackground="#1C1C1C" />
             </LinearLayout>
 
-            <!-- Shutter -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
                 android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
                 <TextView android:layout_width="80dp" android:layout_height="wrap_content"
-                    android:text="Shutter" android:textColor="#FFFFFF" android:textSize="13sp" />
+                    android:text="SHUTTER" android:textColor="#88FFFFFF" android:textSize="11sp" android:letterSpacing="0.1" />
                 <Spinner android:id="@+id/spinnerShutter" android:layout_width="0dp"
                     android:layout_height="wrap_content" android:layout_weight="1"
-                    android:backgroundTint="#FFFFFF" android:popupBackground="#333333" />
+                    android:backgroundTint="#FFFF8000" android:popupBackground="#1C1C1C" />
             </LinearLayout>
 
-            <!-- White Balance -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
                 android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
                 <TextView android:layout_width="80dp" android:layout_height="wrap_content"
-                    android:text="WB" android:textColor="#FFFFFF" android:textSize="13sp" />
+                    android:text="W.BAL" android:textColor="#88FFFFFF" android:textSize="11sp" android:letterSpacing="0.1" />
                 <Spinner android:id="@+id/spinnerWb" android:layout_width="0dp"
                     android:layout_height="wrap_content" android:layout_weight="1"
-                    android:backgroundTint="#FFFFFF" android:popupBackground="#333333" />
+                    android:backgroundTint="#FFFF8000" android:popupBackground="#1C1C1C" />
             </LinearLayout>
 
-            <!-- Focus Mode -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
                 android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
                 <TextView android:layout_width="80dp" android:layout_height="wrap_content"
-                    android:text="Focus" android:textColor="#FFFFFF" android:textSize="13sp" />
+                    android:text="FOCUS" android:textColor="#88FFFFFF" android:textSize="11sp" android:letterSpacing="0.1" />
                 <Spinner android:id="@+id/spinnerFocus" android:layout_width="0dp"
                     android:layout_height="wrap_content" android:layout_weight="1"
-                    android:backgroundTint="#FFFFFF" android:popupBackground="#333333" />
+                    android:backgroundTint="#FFFF8000" android:popupBackground="#1C1C1C" />
             </LinearLayout>
 
-            <!-- Manual Focus distance (visible only in MF) -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp"
-                android:visibility="gone" android:id="@+id/seekbarMfContainer">
-                <TextView android:layout_width="80dp" android:layout_height="wrap_content"
-                    android:text="MF Dist" android:textColor="#AAAAAA" android:textSize="12sp" />
-                <SeekBar android:id="@+id/seekbarMf" android:layout_width="0dp"
-                    android:layout_height="wrap_content" android:layout_weight="1"
-                    android:progressTint="#FFFFFF" android:thumbTint="#FFFFFF"
-                    android:visibility="gone" />
-            </LinearLayout>
+            <SeekBar android:id="@+id/seekbarMf" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginBottom="8dp"
+                android:progressTint="#FFFF8000" android:thumbTint="#FFFF8000" android:visibility="gone" />
 
-            <!-- Exposure Compensation -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
                 android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
                 <TextView android:layout_width="80dp" android:layout_height="wrap_content"
-                    android:text="EV" android:textColor="#FFFFFF" android:textSize="13sp" />
+                    android:text="EV" android:textColor="#88FFFFFF" android:textSize="11sp" android:letterSpacing="0.1" />
                 <SeekBar android:id="@+id/seekbarEv" android:layout_width="0dp"
                     android:layout_height="wrap_content" android:layout_weight="1"
-                    android:progressTint="#FFD700" android:thumbTint="#FFD700" />
-                <TextView android:id="@+id/tvEvValue" android:layout_width="40dp"
+                    android:progressTint="#FFFF8000" android:thumbTint="#FFFF8000" />
+                <TextView android:id="@+id/tvEvValue" android:layout_width="36dp"
                     android:layout_height="wrap_content" android:text="0"
-                    android:textColor="#FFD700" android:textSize="13sp"
-                    android:gravity="center" />
+                    android:textColor="#FFFF8000" android:textSize="12sp" android:gravity="center" />
             </LinearLayout>
 
-            <!-- Color Profile -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
                 android:orientation="horizontal" android:gravity="center_vertical">
                 <TextView android:layout_width="80dp" android:layout_height="wrap_content"
-                    android:text="Profile" android:textColor="#FFFFFF" android:textSize="13sp" />
+                    android:text="PROFILE" android:textColor="#88FFFFFF" android:textSize="11sp" android:letterSpacing="0.1" />
                 <Spinner android:id="@+id/spinnerColorProfile" android:layout_width="0dp"
                     android:layout_height="wrap_content" android:layout_weight="1"
-                    android:backgroundTint="#FFFFFF" android:popupBackground="#333333" />
+                    android:backgroundTint="#FFFF8000" android:popupBackground="#1C1C1C" />
             </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
 
-    <!-- ── Video Controls Panel ───────────────────────────── -->
+    <!-- ══════════ VIDEO SETTINGS (res + fps as segmented buttons) ══════════ -->
     <LinearLayout
         android:id="@+id/videoControlsPanel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="#CC000000"
-        android:padding="8dp"
-        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:background="#E6000000"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/topBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Res:" android:textColor="#FFFFFF" android:textSize="13sp"
-            android:paddingEnd="8dp" />
-        <Spinner android:id="@+id/spinnerResolution" android:layout_width="0dp"
-            android:layout_height="wrap_content" android:layout_weight="1"
-            android:backgroundTint="#FFFFFF" android:popupBackground="#333333" />
+        <!-- Resolution row -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
+            android:orientation="horizontal" android:background="#1AFFFFFF"
+            android:layout_marginBottom="8dp">
+            <Button android:id="@+id/btnRes720" style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="720p" android:textColor="#88FFFFFF" android:textSize="13sp" />
+            <Button android:id="@+id/btnRes1080" style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="1080p" android:textColor="#FFFF8000" android:textSize="13sp" />
+            <Button android:id="@+id/btnRes4k" style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="4K" android:textColor="#88FFFFFF" android:textSize="13sp" />
+        </LinearLayout>
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="  FPS:" android:textColor="#FFFFFF" android:textSize="13sp"
-            android:paddingEnd="8dp" />
+        <!-- FPS row -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
+            android:orientation="horizontal" android:background="#1AFFFFFF">
+            <Button android:id="@+id/btnFps30" style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="30fps" android:textColor="#FFFF8000" android:textSize="13sp" />
+            <Button android:id="@+id/btnFps60" style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="60fps" android:textColor="#88FFFFFF" android:textSize="13sp" />
+            <Button android:id="@+id/btnFps120" style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="120fps" android:textColor="#88FFFFFF" android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Hidden spinners still needed for data binding -->
+        <Spinner android:id="@+id/spinnerResolution" android:layout_width="0dp"
+            android:layout_height="0dp" android:visibility="gone" />
         <Spinner android:id="@+id/spinnerFps" android:layout_width="0dp"
-            android:layout_height="wrap_content" android:layout_weight="1"
-            android:backgroundTint="#FFFFFF" android:popupBackground="#333333" />
+            android:layout_height="0dp" android:visibility="gone" />
 
     </LinearLayout>
 
-    <!-- ── Portrait Panel ─────────────────────────────────── -->
+    <!-- ══════════ PORTRAIT PANEL (depth of field) ══════════ -->
     <LinearLayout
         android:id="@+id/portraitPanel"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="56dp"
         android:orientation="horizontal"
-        android:background="#CC000000"
-        android:padding="12dp"
         android:gravity="center_vertical"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:background="#CC000000"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintBottom_toTopOf="@id/lensSelector"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Bokeh" android:textColor="#FFFFFF" android:textSize="13sp"
-            android:paddingEnd="12dp" />
-        <SeekBar android:id="@+id/seekbarBokeh"
-            android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:max="100" android:progress="50"
-            android:progressTint="#00BFFF" android:thumbTint="#00BFFF" />
-
+            android:text="Strong" android:textColor="#88FFFFFF" android:textSize="12sp" />
+        <SeekBar android:id="@+id/seekbarBokeh" android:layout_width="0dp"
+            android:layout_height="wrap_content" android:layout_weight="1"
+            android:layout_marginStart="12dp" android:layout_marginEnd="12dp"
+            android:max="100" android:progress="50"
+            android:progressTint="#FFFF8000" android:thumbTint="#FFFF8000" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Weak" android:textColor="#88FFFFFF" android:textSize="12sp" />
     </LinearLayout>
 
-    <!-- ── Lens Selector ──────────────────────────────────── -->
+    <!-- ══════════ HORIZONTAL LENS SELECTOR ════════════════ -->
     <LinearLayout
         android:id="@+id/lensSelector"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="#66000000"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
-        app:layout_constraintBottom_toTopOf="@id/modeTabBar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="12dp">
-
-        <Button
-            android:id="@+id/btnLensUltrawide"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="0.6×"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:alpha="0.6"
-            android:minWidth="56dp" />
-
-        <Button
-            android:id="@+id/btnLensWide"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="1×"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:alpha="1.0"
-            android:minWidth="56dp" />
-
-        <Button
-            android:id="@+id/btnLensTele"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="3×"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:alpha="0.6"
-            android:minWidth="56dp" />
-
-    </LinearLayout>
-
-    <!-- ── Mode Tab Bar ───────────────────────────────────── -->
-    <LinearLayout
-        android:id="@+id/modeTabBar"
         android:layout_width="0dp"
         android:layout_height="44dp"
         android:orientation="horizontal"
         android:gravity="center"
-        android:background="#66000000"
+        android:background="#CC000000"
+        app:layout_constraintBottom_toTopOf="@id/modeTabBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <Button
+            android:id="@+id/btnLensUltrawide"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="0.6"
+            android:textColor="#88FFFFFF"
+            android:textSize="13sp"
+            android:minWidth="0dp" />
+
+        <Button
+            android:id="@+id/btnLensWide"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="1×"
+            android:textColor="#FFFF8000"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:minWidth="0dp" />
+
+        <Button
+            android:id="@+id/btnLensTele"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="3"
+            android:textColor="#88FFFFFF"
+            android:textSize="13sp"
+            android:minWidth="0dp" />
+
+    </LinearLayout>
+
+    <!-- ══════════ MODE TABS ════════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/modeTabBar"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="#CC000000"
         app:layout_constraintBottom_toTopOf="@id/bottomBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <Button
-            android:id="@+id/tabPhoto"
+        <Button android:id="@+id/tabPhoto"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="PHOTO"
-            android:textColor="#FFFFFF"
-            android:textSize="11sp" />
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:text="PHOTO" android:textColor="#FFFF8000" android:textSize="10sp"
+            android:letterSpacing="0.08" />
 
-        <Button
-            android:id="@+id/tabVideo"
+        <Button android:id="@+id/tabVideo"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="VIDEO"
-            android:textColor="#FFFFFF"
-            android:textSize="11sp"
-            android:alpha="0.5" />
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:text="VIDEO" android:textColor="#55FFFFFF" android:textSize="10sp"
+            android:letterSpacing="0.08" />
 
-        <Button
-            android:id="@+id/tabPortrait"
+        <Button android:id="@+id/tabPortrait"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="PORTRAIT"
-            android:textColor="#FFFFFF"
-            android:textSize="11sp"
-            android:alpha="0.5" />
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:text="PORTRAIT" android:textColor="#55FFFFFF" android:textSize="10sp"
+            android:letterSpacing="0.08" />
 
-        <Button
-            android:id="@+id/tabPro"
+        <Button android:id="@+id/tabPro"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="PRO"
-            android:textColor="#FFD700"
-            android:textSize="11sp"
-            android:alpha="0.5" />
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:text="PRO" android:textColor="#55FFFFFF" android:textSize="10sp"
+            android:letterSpacing="0.08" />
 
     </LinearLayout>
 
-    <!-- ── Bottom Shutter Bar ─────────────────────────────── -->
+    <!-- ══════════ BOTTOM SHUTTER BAR ════════════════════════ -->
     <LinearLayout
         android:id="@+id/bottomBar"
         android:layout_width="0dp"
-        android:layout_height="100dp"
+        android:layout_height="108dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:background="#CC000000"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Gallery thumbnail placeholder -->
+        <!-- Gallery thumbnail (rounded) -->
         <ImageView
             android:id="@+id/ivGallery"
             android:layout_width="52dp"
             android:layout_height="52dp"
-            android:background="#333333"
+            android:background="#22FFFFFF"
             android:scaleType="centerCrop"
             android:src="@android:drawable/ic_menu_slideshow"
             android:contentDescription="Gallery" />
@@ -426,24 +423,25 @@
         <!-- Shutter / Record button -->
         <ImageButton
             android:id="@+id/btnCapture"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="76dp"
+            android:layout_height="76dp"
             android:background="@drawable/shutter_button_bg"
             android:src="@drawable/ic_shutter"
             android:scaleType="center"
             android:contentDescription="Capture"
-            android:padding="8dp" />
+            android:padding="10dp" />
 
         <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
 
-        <!-- Flip camera (front / back) -->
+        <!-- Flip camera (dark circle) -->
         <ImageButton
             android:id="@+id/btnFlipCamera"
             android:layout_width="52dp"
             android:layout_height="52dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="#22FFFFFF"
             android:src="@android:drawable/ic_menu_revert"
-            android:tint="#FFFFFF"
+            android:tint="#AAFFFFFF"
+            android:scaleType="center"
             android:contentDescription="Flip Camera" />
 
     </LinearLayout>
