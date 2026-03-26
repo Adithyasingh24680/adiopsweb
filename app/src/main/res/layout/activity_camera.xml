@@ -418,7 +418,7 @@
             android:layout_height="52dp"
             android:background="#333333"
             android:scaleType="centerCrop"
-            android:src="@android:drawable/ic_menu_gallery"
+            android:src="@android:drawable/ic_menu_slideshow"
             android:contentDescription="Gallery" />
 
         <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
@@ -429,7 +429,7 @@
             android:layout_width="72dp"
             android:layout_height="72dp"
             android:background="@drawable/shutter_button_bg"
-            android:src="@android:drawable/ic_menu_camera"
+            android:src="@drawable/ic_shutter"
             android:scaleType="center"
             android:contentDescription="Capture"
             android:padding="8dp" />
@@ -442,7 +442,7 @@
             android:layout_width="52dp"
             android:layout_height="52dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_rotate"
+            android:src="@android:drawable/ic_menu_revert"
             android:tint="#FFFFFF"
             android:contentDescription="Flip Camera" />
 

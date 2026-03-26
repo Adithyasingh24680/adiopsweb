@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="36dp"
+    android:height="36dp"
+    android:viewportWidth="36"
+    android:viewportHeight="36">
+    <circle android:fillColor="#FFFF0000" android:cx="18" android:cy="18" android:r="12" />
+    <circle android:fillColor="#FFFFFFFF" android:cx="18" android:cy="18" android:r="14"
+        android:strokeColor="#FFFFFFFF" android:strokeWidth="2" />
+    <circle android:fillColor="#FFFF0000" android:cx="18" android:cy="18" android:r="10" />
+</vector>

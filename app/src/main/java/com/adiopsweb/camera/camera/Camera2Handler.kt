@@ -9,6 +9,7 @@ import android.hardware.camera2.*
 import android.hardware.camera2.params.MeteringRectangle
 import android.media.ImageReader
 import android.media.MediaRecorder
+import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.provider.MediaStore
@@ -132,6 +133,7 @@ class Camera2Handler(
     }
 
     /** Create preview capture session */
+    @Suppress("DEPRECATION")
     private fun createPreviewSession() {
         val texture = textureView.surfaceTexture ?: return
         texture.setDefaultBufferSize(textureView.width, textureView.height)
@@ -336,12 +338,18 @@ class Camera2Handler(
 
     /** Start video recording */
     @SuppressLint("MissingPermission")
+    @Suppress("DEPRECATION")
     fun startVideoRecording() {
         if (isRecording) return
         val camera = cameraDevice ?: return
         val texture = textureView.surfaceTexture ?: return
 
-        mediaRecorder = MediaRecorder(context).apply {
+        @Suppress("DEPRECATION")
+        mediaRecorder = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            MediaRecorder(context)
+        } else {
+            MediaRecorder()
+        }).apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setVideoSource(MediaRecorder.VideoSource.SURFACE)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)

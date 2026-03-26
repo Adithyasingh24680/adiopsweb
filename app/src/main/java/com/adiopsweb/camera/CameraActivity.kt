@@ -206,8 +206,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private fun updateCaptureButton() {
         binding.btnCapture.setImageResource(
             when (captureMode) {
-                CaptureMode.VIDEO -> android.R.drawable.ic_media_play
-                else -> android.R.drawable.ic_menu_camera
+                CaptureMode.VIDEO -> R.drawable.ic_record
+                else -> R.drawable.ic_shutter
             }
         )
     }
@@ -241,8 +241,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     private fun onRecordingStateChanged(recording: Boolean) {
         binding.btnCapture.setImageResource(
-            if (recording) android.R.drawable.ic_media_pause
-            else android.R.drawable.ic_media_play
+            if (recording) R.drawable.ic_stop
+            else R.drawable.ic_record
         )
         binding.recordingIndicator.isVisible = recording
     }
