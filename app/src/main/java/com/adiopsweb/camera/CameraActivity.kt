@@ -1,9 +1,11 @@
 package com.adiopsweb.camera
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.PointF
 import android.graphics.SurfaceTexture
+import android.provider.MediaStore
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -138,10 +140,19 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         setupModeSelector()
         setupCaptureButton()
         setupTopControls()
+        setupGalleryButton()
         setupProPanel()
         setupVideoControls()
         setupPinchZoom()
         setupTapToFocus()
+    }
+
+    private fun setupGalleryButton() {
+        binding.ivGallery.setOnClickListener {
+            val intent = Intent(Intent.ACTION_VIEW, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+            intent.type = "image/*"
+            startActivity(intent)
+        }
     }
 
     /** Lens selector: UW / 1x / 3x */

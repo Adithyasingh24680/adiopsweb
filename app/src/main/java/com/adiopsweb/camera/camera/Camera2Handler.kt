@@ -78,38 +78,21 @@ class Camera2Handler(
         }
     }
 
-    /** Map LensMode to the correct physical camera ID on OnePlus 13 */
-    private fun getCameraIdForLens(lens: LensMode): String {
-        val ids = cameraManager.cameraIdList
-        for (id in ids) {
-            val chars = cameraManager.getCameraCharacteristics(id)
-            val facing = chars.get(CameraCharacteristics.LENS_FACING)
-            if (facing != CameraCharacteristics.LENS_FACING_BACK) continue
-
-            val focalLengths = chars.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)
-            if (focalLengths == null || focalLengths.isEmpty()) continue
-
-            val fl = focalLengths[0]
-            when (lens) {
-                LensMode.ULTRAWIDE -> if (fl < 2.0f) return id
-                LensMode.WIDE      -> if (fl in 3.5f..5.5f) return id
-                LensMode.TELEPHOTO -> if (fl > 6.0f) return id
-            }
-        }
-        // Fallback: return the first back-facing camera
-        return ids.firstOrNull { id ->
+    /** Get the main back-facing camera ID */
+    private fun getBackCameraId(): String {
+        return cameraManager.cameraIdList.firstOrNull { id ->
             cameraManager.getCameraCharacteristics(id)
                 .get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK
         } ?: "0"
     }
 
-    /** Open the camera for the given lens */
+    /** Open the camera (always uses the logical back camera; lens is set via zoom ratio) */
     @SuppressLint("MissingPermission")
     fun openCamera(lens: LensMode = currentLens) {
         currentLens = lens
         closeCamera()
-        val cameraId = getCameraIdForLens(lens)
-        Log.d(TAG, "Opening camera $cameraId for lens $lens")
+        val cameraId = getBackCameraId()
+        Log.d(TAG, "Opening camera $cameraId")
 
         try {
             cameraManager.openCamera(cameraId, object : CameraDevice.StateCallback() {
@@ -132,12 +115,43 @@ class Camera2Handler(
         }
     }
 
+    /**
+     * Rotate & scale the TextureView so the landscape camera buffer fills
+     * the portrait screen without stretching.
+     */
+    private fun applyPreviewTransform() {
+        val vW = textureView.width.toFloat()
+        val vH = textureView.height.toFloat()
+        if (vW == 0f || vH == 0f) return
+
+        val chars = cameraManager.getCameraCharacteristics(getBackCameraId())
+        val sensorOrientation = chars.get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 90
+
+        val matrix = android.graphics.Matrix()
+        val cx = vW / 2f
+        val cy = vH / 2f
+
+        // Rotate the landscape buffer (1920×1080) to portrait orientation
+        matrix.postRotate(sensorOrientation.toFloat(), cx, cy)
+
+        // After rotation the effective display size is 1080×1920; scale to fill screen
+        val effW = if (sensorOrientation % 180 == 90) 1080f else 1920f
+        val effH = if (sensorOrientation % 180 == 90) 1920f else 1080f
+        val scale = maxOf(vW / effW, vH / effH)
+        matrix.postScale(scale, scale, cx, cy)
+
+        textureView.setTransform(matrix)
+    }
+
     /** Create preview capture session */
     @Suppress("DEPRECATION")
     private fun createPreviewSession() {
         val texture = textureView.surfaceTexture ?: return
-        texture.setDefaultBufferSize(textureView.width, textureView.height)
+        // Use a landscape buffer that the camera actually supports; we rotate in software
+        texture.setDefaultBufferSize(1920, 1080)
         val previewSurface = Surface(texture)
+        // Apply transform on the main thread (TextureView must be touched on UI thread)
+        android.os.Handler(android.os.Looper.getMainLooper()).post { applyPreviewTransform() }
 
         // ImageReader for still capture
         imageReader = ImageReader.newInstance(4000, 3000,
@@ -232,23 +246,31 @@ class Camera2Handler(
             if (isFlashOn) CaptureRequest.FLASH_MODE_TORCH
             else CaptureRequest.FLASH_MODE_OFF)
 
-        // Digital zoom via crop region
-        applyDigitalZoom(builder)
+        // Lens selection + digital zoom via CONTROL_ZOOM_RATIO (API 30+) or crop region
+        applyZoom(builder)
     }
 
-    /** Apply digital zoom by cropping sensor array */
-    private fun applyDigitalZoom(builder: CaptureRequest.Builder) {
-        if (digitalZoom <= 1.0f) return
-        val cameraId = getCameraIdForLens(currentLens)
-        val chars = cameraManager.getCameraCharacteristics(cameraId)
-        val sensorRect = chars.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return
+    /** Apply lens zoom using CONTROL_ZOOM_RATIO (API 30+) or SCALER_CROP_REGION fallback */
+    private fun applyZoom(builder: CaptureRequest.Builder) {
+        val totalZoom = currentLens.zoomFactor * maxOf(digitalZoom, 1.0f)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // API 30+: zoom ratio < 1 = ultrawide, 1 = wide, 3 = tele
+            builder.set(CaptureRequest.CONTROL_ZOOM_RATIO, totalZoom)
+        } else {
+            // API 26-29: crop region for zoom > 1; ultrawide not reachable via crop
+            if (totalZoom > 1.0f) applyDigitalZoom(builder, totalZoom)
+        }
+    }
 
-        val cropW = (sensorRect.width() / digitalZoom).toInt()
-        val cropH = (sensorRect.height() / digitalZoom).toInt()
+    /** Crop-region digital zoom fallback for API < 30 */
+    private fun applyDigitalZoom(builder: CaptureRequest.Builder, zoom: Float) {
+        val chars = cameraManager.getCameraCharacteristics(getBackCameraId())
+        val sensorRect = chars.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return
+        val cropW = (sensorRect.width() / zoom).toInt()
+        val cropH = (sensorRect.height() / zoom).toInt()
         val cropX = (sensorRect.width() - cropW) / 2
         val cropY = (sensorRect.height() - cropH) / 2
-        val cropRect = Rect(cropX, cropY, cropX + cropW, cropY + cropH)
-        builder.set(CaptureRequest.SCALER_CROP_REGION, cropRect)
+        builder.set(CaptureRequest.SCALER_CROP_REGION, Rect(cropX, cropY, cropX + cropW, cropY + cropH))
     }
 
     /** Trigger autofocus tap-to-focus at the given normalized coordinates */
@@ -344,6 +366,25 @@ class Camera2Handler(
         val camera = cameraDevice ?: return
         val texture = textureView.surfaceTexture ?: return
 
+        // Cap at 1080p for Camera2 API compatibility; 4K requires vendor-specific setup
+        val safeRes = if (videoResolution == VideoResolution.UHD_4K) VideoResolution.FHD_1080P
+                      else videoResolution
+        // Clamp fps: 120/240 slow-mo needs separate high-speed session; cap at 60 for standard
+        val safeFps = frameRate.fps.coerceAtMost(60)
+
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val outputValues = ContentValues().apply {
+            put(android.provider.MediaStore.Video.Media.DISPLAY_NAME, "VID_$timestamp.mp4")
+            put(android.provider.MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+            put(android.provider.MediaStore.Video.Media.RELATIVE_PATH, "DCIM/ProCam13")
+        }
+        val videoUri = context.contentResolver.insert(
+            android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI, outputValues
+        ) ?: run { onError("Cannot create video file"); return }
+
+        val videoFd = context.contentResolver.openFileDescriptor(videoUri, "w")
+            ?: run { onError("Cannot open video file"); return }
+
         @Suppress("DEPRECATION")
         mediaRecorder = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             MediaRecorder(context)
@@ -353,30 +394,23 @@ class Camera2Handler(
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setVideoSource(MediaRecorder.VideoSource.SURFACE)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
             setVideoEncoder(MediaRecorder.VideoEncoder.H264)
-
-            val res = videoResolution
-            setVideoSize(res.width, res.height)
-            setVideoFrameRate(frameRate.fps)
-
-            val bitrate = when (res) {
-                VideoResolution.UHD_4K -> 50_000_000
+            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setVideoSize(safeRes.width, safeRes.height)
+            setVideoFrameRate(safeFps)
+            val bitrate = when (safeRes) {
+                VideoResolution.UHD_4K    -> 50_000_000
                 VideoResolution.FHD_1080P -> 20_000_000
-                VideoResolution.HD_720P -> 10_000_000
+                VideoResolution.HD_720P   -> 8_000_000
             }
             setVideoEncodingBitRate(bitrate)
-
-            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-            val dir = File(context.getExternalFilesDir(null), "ProCam13")
-            dir.mkdirs()
-            val outputFile = File(dir, "VID_$timestamp.mp4")
-            setOutputFile(outputFile.absolutePath)
+            setOutputFile(videoFd.fileDescriptor)
             prepare()
         }
 
         val recorderSurface = mediaRecorder!!.surface
-        texture.setDefaultBufferSize(videoResolution.width, videoResolution.height)
+        // Preview buffer: landscape size matching video resolution
+        texture.setDefaultBufferSize(safeRes.width, safeRes.height)
         val previewSurface = Surface(texture)
 
         try {
@@ -387,20 +421,24 @@ class Camera2Handler(
                         val builder = camera.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
                             addTarget(previewSurface)
                             addTarget(recorderSurface)
+                            // Use a flexible FPS range so AE can adapt
                             set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
-                                Range(frameRate.fps, frameRate.fps))
+                                Range(24, safeFps))
                             applyProSettings(this)
                         }
                         session.setRepeatingRequest(builder.build(), null, backgroundHandler)
                         mediaRecorder?.start()
                         isRecording = true
+                        videoFd.close()
                         onVideoStateChanged(true)
                     }
                     override fun onConfigureFailed(session: CameraCaptureSession) {
+                        videoFd.close()
                         onError("Video session config failed")
                     }
                 }, backgroundHandler)
         } catch (e: Exception) {
+            videoFd.close()
             onError("Start recording failed: ${e.message}")
         }
     }
@@ -435,7 +473,8 @@ class Camera2Handler(
     }
 
     // Setters for UI controls
-    fun setLens(lens: LensMode) { openCamera(lens) }
+    // Lens switch: update zoom ratio in the ongoing session — no camera reopen needed
+    fun setLens(lens: LensMode) { currentLens = lens; restartPreview() }
     fun setCaptureMode(mode: CaptureMode) { captureMode = mode }
     fun setVideoResolution(res: VideoResolution) { videoResolution = res }
     fun setFrameRate(fps: FrameRate) { frameRate = fps }
