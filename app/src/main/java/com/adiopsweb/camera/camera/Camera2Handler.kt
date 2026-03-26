@@ -277,7 +277,7 @@ class Camera2Handler(
     fun triggerTapToFocus(normX: Float, normY: Float) {
         val camera = cameraDevice ?: return
         val session = captureSession ?: return
-        val cameraId = getCameraIdForLens(currentLens)
+        val cameraId = getBackCameraId()
         val chars = cameraManager.getCameraCharacteristics(cameraId)
         val sensorRect = chars.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return
 
