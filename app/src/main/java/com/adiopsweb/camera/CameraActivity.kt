@@ -5,6 +5,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.PointF
 import android.graphics.SurfaceTexture
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -21,7 +23,7 @@ import androidx.core.view.isVisible
 import com.adiopsweb.camera.camera.*
 import com.adiopsweb.camera.databinding.ActivityCameraBinding
 import com.google.android.material.snackbar.Snackbar
-import kotlin.math.sqrt
+import java.util.Locale
 
 class CameraActivity : AppCompatActivity(), SensorEventListener {
 
@@ -30,27 +32,39 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
 
-    // Current settings state
     private var captureMode = CaptureMode.PHOTO
     private var currentLens = LensMode.WIDE
     private var videoResolution = VideoResolution.FHD_1080P
     private var frameRate = FrameRate.FPS_30
     private var proSettings = ProSettings()
     private var colorProfile = ColorProfile.NATURAL
+    private var aspectRatio = AspectRatio.FULL
     private var isFlashOn = false
     private var showGrid = false
     private var isHdrOn = false
     private var isRawOn = false
 
-    // Zoom gesture
     private var scaleGestureDetector: ScaleGestureDetector? = null
     private var currentZoom = 1.0f
 
+    // Video recording timer
+    private val timerHandler = Handler(Looper.getMainLooper())
+    private var recordingSeconds = 0
+    private val timerRunnable = object : Runnable {
+        override fun run() {
+            recordingSeconds++
+            val m = recordingSeconds / 60
+            val s = recordingSeconds % 60
+            binding.tvRecordTimer.text = String.format(Locale.US, "%02d:%02d", m, s)
+            timerHandler.postDelayed(this, 1000)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Full screen immersive
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
             WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        @Suppress("DEPRECATION")
         window.decorView.systemUiVisibility = (
             View.SYSTEM_UI_FLAG_LAYOUT_STABLE
             or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
@@ -62,22 +76,17 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         binding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        if (!hasPermissions()) {
-            requestPermissions()
-            return
-        }
-
+        if (!hasPermissions()) { requestPermissions(); return }
         initCamera()
         initSensors()
         setupUI()
     }
 
-    // ── Permissions ─────────────────────────────────────────────────────────
+    // ── Permissions ──────────────────────────────────────────────────────────
 
-    private fun hasPermissions(): Boolean {
-        val perms = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
-        return perms.all { ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED }
-    }
+    private fun hasPermissions() = arrayOf(
+        Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO
+    ).all { ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED }
 
     private fun requestPermissions() {
         ActivityCompat.requestPermissions(this,
@@ -94,7 +103,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    // ── Camera Init ─────────────────────────────────────────────────────────
+    // ── Camera ───────────────────────────────────────────────────────────────
 
     private fun initCamera() {
         cameraHandler = Camera2Handler(
@@ -104,7 +113,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             onPhotoSaved = { name -> runOnUiThread { showSnack("Saved: $name") } },
             onVideoStateChanged = { recording -> runOnUiThread { onRecordingStateChanged(recording) } }
         )
-
         binding.textureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
             override fun onSurfaceTextureAvailable(surface: SurfaceTexture, w: Int, h: Int) {
                 cameraHandler.openCamera(currentLens)
@@ -115,7 +123,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    // ── Sensors (gyro for level) ─────────────────────────────────────────────
+    // ── Sensors ──────────────────────────────────────────────────────────────
 
     private fun initSensors() {
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
@@ -124,16 +132,15 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-            val x = event.values[0]
-            val y = event.values[1]
-            val angle = Math.toDegrees(Math.atan2(x.toDouble(), y.toDouble())).toFloat()
+            val angle = Math.toDegrees(Math.atan2(
+                event.values[0].toDouble(), event.values[1].toDouble())).toFloat()
             binding.overlayView.levelAngle = angle
         }
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
-    // ── UI Setup ─────────────────────────────────────────────────────────────
+    // ── UI ───────────────────────────────────────────────────────────────────
 
     private fun setupUI() {
         setupLensButtons()
@@ -143,6 +150,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         setupGalleryButton()
         setupProPanel()
         setupVideoControls()
+        setupAspectRatio()
         setupPinchZoom()
         setupTapToFocus()
     }
@@ -155,7 +163,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    /** Lens selector: UW / 1x / 3x */
+    // ── Lens ─────────────────────────────────────────────────────────────────
+
     private fun setupLensButtons() {
         binding.btnLensUltrawide.setOnClickListener { switchLens(LensMode.ULTRAWIDE) }
         binding.btnLensWide.setOnClickListener { switchLens(LensMode.WIDE) }
@@ -164,6 +173,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun switchLens(lens: LensMode) {
+        if (cameraHandler.isCurrentlyRecording()) return // no lens switch during recording
         currentLens = lens
         currentZoom = 1.0f
         cameraHandler.setLens(lens)
@@ -187,7 +197,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    /** Mode selector: Photo / Video / Portrait / Pro */
+    // ── Mode ─────────────────────────────────────────────────────────────────
+
     private fun setupModeSelector() {
         binding.tabPhoto.setOnClickListener { setMode(CaptureMode.PHOTO) }
         binding.tabVideo.setOnClickListener { setMode(CaptureMode.VIDEO) }
@@ -200,12 +211,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         captureMode = mode
         cameraHandler.setCaptureMode(mode)
 
-        // Show/hide relevant panels
         binding.proPanel.isVisible = (mode == CaptureMode.PRO)
         binding.videoControlsPanel.isVisible = (mode == CaptureMode.VIDEO)
         binding.portraitPanel.isVisible = (mode == CaptureMode.PORTRAIT)
 
-        // Update tab appearances
         val orange = 0xFFFF8000.toInt()
         val dim = 0x55FFFFFF.toInt()
         listOf(
@@ -213,9 +222,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             binding.tabVideo to CaptureMode.VIDEO,
             binding.tabPortrait to CaptureMode.PORTRAIT,
             binding.tabPro to CaptureMode.PRO
-        ).forEach { (tab, m) ->
-            tab.setTextColor(if (m == mode) orange else dim)
-        }
+        ).forEach { (tab, m) -> tab.setTextColor(if (m == mode) orange else dim) }
 
         updateCaptureButton()
     }
@@ -225,25 +232,19 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             when (captureMode) {
                 CaptureMode.VIDEO -> R.drawable.ic_record
                 else -> R.drawable.ic_shutter
-            }
-        )
+            })
     }
 
-    /** Main capture / record button */
+    // ── Capture button ────────────────────────────────────────────────────────
+
     private fun setupCaptureButton() {
         binding.btnCapture.setOnClickListener {
             when (captureMode) {
                 CaptureMode.VIDEO -> {
-                    if (cameraHandler.isCurrentlyRecording()) {
-                        cameraHandler.stopVideoRecording()
-                    } else {
-                        cameraHandler.startVideoRecording()
-                    }
+                    if (cameraHandler.isCurrentlyRecording()) cameraHandler.stopVideoRecording()
+                    else cameraHandler.startVideoRecording()
                 }
-                else -> {
-                    cameraHandler.capturePhoto()
-                    animateCapture()
-                }
+                else -> { cameraHandler.capturePhoto(); animateCapture() }
             }
         }
     }
@@ -258,13 +259,35 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     private fun onRecordingStateChanged(recording: Boolean) {
         binding.btnCapture.setImageResource(
-            if (recording) R.drawable.ic_stop
-            else R.drawable.ic_record
-        )
+            if (recording) R.drawable.ic_stop else R.drawable.ic_record)
         binding.recordingIndicator.isVisible = recording
+        binding.tvRecordTimer.isVisible = recording
+
+        // Lock/unlock res+fps buttons during recording
+        val enabled = !recording
+        binding.btnRes720.isEnabled = enabled
+        binding.btnRes1080.isEnabled = enabled
+        binding.btnRes4k.isEnabled = enabled
+        binding.btnFps24.isEnabled = enabled
+        binding.btnFps30.isEnabled = enabled
+        binding.btnFps60.isEnabled = enabled
+        binding.btnFps120.isEnabled = enabled
+        binding.btnFps240.isEnabled = enabled
+        binding.btnLensUltrawide.isEnabled = enabled
+        binding.btnLensWide.isEnabled = enabled
+        binding.btnLensTele.isEnabled = enabled
+
+        if (recording) {
+            recordingSeconds = 0
+            binding.tvRecordTimer.text = "00:00"
+            timerHandler.postDelayed(timerRunnable, 1000)
+        } else {
+            timerHandler.removeCallbacks(timerRunnable)
+        }
     }
 
-    /** Top bar: flash, HDR, RAW, grid, timer, settings */
+    // ── Top controls ──────────────────────────────────────────────────────────
+
     private fun setupTopControls() {
         binding.btnFlash.setOnClickListener {
             isFlashOn = !isFlashOn
@@ -276,7 +299,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             isHdrOn = !isHdrOn
             cameraHandler.setHdr(isHdrOn)
             binding.btnHdr.alpha = if (isHdrOn) 1.0f else 0.6f
-            binding.btnHdr.text = if (isHdrOn) "HDR" else "HDR"
         }
 
         binding.btnGrid.setOnClickListener {
@@ -293,22 +315,20 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
 
         binding.btnMenu.setOnClickListener {
-            // Cycle through color profiles as a quick settings shortcut
             val profiles = ColorProfile.values()
-            val next = profiles[(colorProfile.ordinal + 1) % profiles.size]
-            colorProfile = next
+            colorProfile = profiles[(colorProfile.ordinal + 1) % profiles.size]
             cameraHandler.setColorProfile(colorProfile)
             showSnack("Profile: ${colorProfile.label}")
         }
 
         binding.btnFlipCamera.setOnClickListener {
-            showSnack("Front camera not supported in Pro mode")
+            showSnack("Front camera not available in Pro mode")
         }
     }
 
-    /** Pro mode panel: ISO, Shutter, WB, Focus, EV */
+    // ── Pro panel ─────────────────────────────────────────────────────────────
+
     private fun setupProPanel() {
-        // ISO Spinner
         val isoAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item,
             ISO_VALUES.map { if (it == 0) "Auto" else "ISO $it" })
         isoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -321,7 +341,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             override fun onNothingSelected(p: AdapterView<*>) {}
         }
 
-        // Shutter Speed Spinner
         val shutterAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item,
             SHUTTER_SPEEDS.map { it.first })
         shutterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -334,7 +353,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             override fun onNothingSelected(p: AdapterView<*>) {}
         }
 
-        // White Balance Spinner
         val wbAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item,
             WhiteBalance.values().map { it.label })
         wbAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -347,7 +365,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             override fun onNothingSelected(p: AdapterView<*>) {}
         }
 
-        // Focus Mode Spinner
         val focusAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item,
             FocusMode.values().map { it.label })
         focusAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -362,19 +379,16 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             override fun onNothingSelected(p: AdapterView<*>) {}
         }
 
-        // Manual Focus SeekBar
         binding.seekbarMf.max = 100
         binding.seekbarMf.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
-                val dist = progress / 100f
-                proSettings = proSettings.copy(manualFocusDistance = dist)
+                proSettings = proSettings.copy(manualFocusDistance = progress / 100f)
                 cameraHandler.setProSettings(proSettings)
             }
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {}
         })
 
-        // EV SeekBar (-3 to +3 in steps)
         binding.seekbarEv.min = -6
         binding.seekbarEv.max = 6
         binding.seekbarEv.progress = 0
@@ -388,7 +402,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             override fun onStopTrackingTouch(sb: SeekBar) {}
         })
 
-        // Color Profile Spinner
         val profileAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item,
             ColorProfile.values().map { it.label })
         profileAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -402,19 +415,19 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    /** Video controls: resolution + frame rate via inline segmented buttons */
+    // ── Video controls ────────────────────────────────────────────────────────
+
     private fun setupVideoControls() {
-        // Resolution buttons
         binding.btnRes720.setOnClickListener { setVideoResolution(VideoResolution.HD_720P) }
         binding.btnRes1080.setOnClickListener { setVideoResolution(VideoResolution.FHD_1080P) }
         binding.btnRes4k.setOnClickListener { setVideoResolution(VideoResolution.UHD_4K) }
 
-        // FPS buttons
+        binding.btnFps24.setOnClickListener { setFrameRate(FrameRate.FPS_24) }
         binding.btnFps30.setOnClickListener { setFrameRate(FrameRate.FPS_30) }
         binding.btnFps60.setOnClickListener { setFrameRate(FrameRate.FPS_60) }
         binding.btnFps120.setOnClickListener { setFrameRate(FrameRate.FPS_120) }
+        binding.btnFps240.setOnClickListener { setFrameRate(FrameRate.FPS_240) }
 
-        // Apply initial state
         updateResolutionButtons()
         updateFpsButtons()
     }
@@ -429,67 +442,82 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         frameRate = fps
         cameraHandler.setFrameRate(fps)
         updateFpsButtons()
+        // Warn about slow-mo
+        if (fps.fps >= 120)
+            showSnack("${fps.fps}fps · Slow-motion (standard session, may cap at 60fps)")
     }
 
     private fun updateResolutionButtons() {
-        val orange = 0xFFFF8000.toInt()
-        val dim = 0x88FFFFFF.toInt()
+        val orange = 0xFFFF8000.toInt(); val dim = 0x88FFFFFF.toInt()
         binding.btnRes720.setTextColor(if (videoResolution == VideoResolution.HD_720P) orange else dim)
         binding.btnRes1080.setTextColor(if (videoResolution == VideoResolution.FHD_1080P) orange else dim)
         binding.btnRes4k.setTextColor(if (videoResolution == VideoResolution.UHD_4K) orange else dim)
     }
 
     private fun updateFpsButtons() {
-        val orange = 0xFFFF8000.toInt()
-        val dim = 0x88FFFFFF.toInt()
+        val orange = 0xFFFF8000.toInt(); val dim = 0x88FFFFFF.toInt()
+        binding.btnFps24.setTextColor(if (frameRate == FrameRate.FPS_24) orange else dim)
         binding.btnFps30.setTextColor(if (frameRate == FrameRate.FPS_30) orange else dim)
         binding.btnFps60.setTextColor(if (frameRate == FrameRate.FPS_60) orange else dim)
         binding.btnFps120.setTextColor(if (frameRate == FrameRate.FPS_120) orange else dim)
+        binding.btnFps240.setTextColor(if (frameRate == FrameRate.FPS_240) orange else dim)
     }
 
-    /** Pinch-to-zoom */
+    // ── Aspect ratio ──────────────────────────────────────────────────────────
+
+    private fun setupAspectRatio() {
+        binding.btnRatioFull.setOnClickListener { setAspectRatio(AspectRatio.FULL) }
+        binding.btnRatio16_9.setOnClickListener { setAspectRatio(AspectRatio.R16_9) }
+        binding.btnRatio4_3.setOnClickListener { setAspectRatio(AspectRatio.R4_3) }
+        binding.btnRatio1_1.setOnClickListener { setAspectRatio(AspectRatio.R1_1) }
+        updateAspectRatioButtons()
+    }
+
+    private fun setAspectRatio(ratio: AspectRatio) {
+        aspectRatio = ratio
+        cameraHandler.setAspectRatio(ratio)
+        binding.overlayView.aspectRatio = ratio
+        updateAspectRatioButtons()
+    }
+
+    private fun updateAspectRatioButtons() {
+        val orange = 0xFFFF8000.toInt(); val dim = 0x88FFFFFF.toInt()
+        binding.btnRatioFull.setTextColor(if (aspectRatio == AspectRatio.FULL) orange else dim)
+        binding.btnRatio16_9.setTextColor(if (aspectRatio == AspectRatio.R16_9) orange else dim)
+        binding.btnRatio4_3.setTextColor(if (aspectRatio == AspectRatio.R4_3) orange else dim)
+        binding.btnRatio1_1.setTextColor(if (aspectRatio == AspectRatio.R1_1) orange else dim)
+    }
+
+    // ── Pinch-to-zoom ─────────────────────────────────────────────────────────
+
     private fun setupPinchZoom() {
         scaleGestureDetector = ScaleGestureDetector(this,
             object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
                 override fun onScale(detector: ScaleGestureDetector): Boolean {
-                    currentZoom *= detector.scaleFactor
-                    currentZoom = currentZoom.coerceIn(1.0f, 10.0f)
+                    currentZoom = (currentZoom * detector.scaleFactor).coerceIn(1.0f, 10.0f)
                     cameraHandler.setDigitalZoom(currentZoom)
-                    binding.tvZoomLevel.text = String.format("%.1f×", currentZoom)
+                    binding.tvZoomLevel.text = String.format(Locale.US, "%.1f×", currentZoom)
                     binding.tvZoomLevel.visibility = View.VISIBLE
                     binding.tvZoomLevel.removeCallbacks(hideZoomLabel)
                     binding.tvZoomLevel.postDelayed(hideZoomLabel, 2000)
                     return true
                 }
             })
-
-        binding.textureView.setOnTouchListener { v, event ->
-            scaleGestureDetector?.onTouchEvent(event)
-            v.performClick()
-            false
-        }
     }
 
-    private val hideZoomLabel = Runnable {
-        binding.tvZoomLevel.visibility = View.GONE
-    }
+    private val hideZoomLabel = Runnable { binding.tvZoomLevel.visibility = View.GONE }
 
-    /** Tap-to-focus */
+    // ── Tap-to-focus ──────────────────────────────────────────────────────────
+
     private fun setupTapToFocus() {
-        binding.textureView.setOnClickListener { view ->
-            // Already handled inside onTouchListener for scale;
-            // we use a GestureDetector for single taps here
-        }
-
-        val gestureDetector = android.view.GestureDetector(this,
-            object : android.view.GestureDetector.SimpleOnGestureListener() {
+        val gestureDetector = GestureDetector(this,
+            object : GestureDetector.SimpleOnGestureListener() {
                 override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
                     val normX = e.x / binding.textureView.width
                     val normY = e.y / binding.textureView.height
                     cameraHandler.triggerTapToFocus(normX, normY)
                     binding.overlayView.focusPoint = PointF(e.x, e.y)
                     binding.overlayView.focusLocked = false
-                    // Clear after 2s
                     binding.overlayView.removeCallbacks(clearFocusRing)
                     binding.overlayView.postDelayed(clearFocusRing, 2000)
                     return true
@@ -504,24 +532,19 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private val clearFocusRing = Runnable {
-        binding.overlayView.focusPoint = null
-    }
+    private val clearFocusRing = Runnable { binding.overlayView.focusPoint = null }
 
-    // ── Lifecycle ────────────────────────────────────────────────────────────
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     override fun onResume() {
         super.onResume()
         cameraHandler.startBackgroundThread()
-        accelerometer?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI)
-        }
-        if (binding.textureView.isAvailable) {
-            cameraHandler.openCamera(currentLens)
-        }
+        accelerometer?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI) }
+        if (binding.textureView.isAvailable) cameraHandler.openCamera(currentLens)
     }
 
     override fun onPause() {
+        timerHandler.removeCallbacks(timerRunnable)
         cameraHandler.closeCamera()
         cameraHandler.stopBackgroundThread()
         sensorManager.unregisterListener(this)

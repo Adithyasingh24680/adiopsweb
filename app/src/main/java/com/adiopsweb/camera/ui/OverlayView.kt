@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
+import com.adiopsweb.camera.camera.AspectRatio
 import com.adiopsweb.camera.camera.LensMode
 
 /**
@@ -35,6 +36,14 @@ class OverlayView @JvmOverloads constructor(
 
     var currentLens: LensMode = LensMode.WIDE
         set(v) { field = v; invalidate() }
+
+    var aspectRatio: AspectRatio = AspectRatio.FULL
+        set(v) { field = v; invalidate() }
+
+    private val cropBarPaint = Paint().apply {
+        color = Color.BLACK
+        style = Paint.Style.FILL
+    }
 
     // ── Paints ──────────────────────────────────────────────────────────────
     private val gridPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -81,6 +90,28 @@ class OverlayView @JvmOverloads constructor(
         focusPoint?.let { drawFocusRing(canvas, it) }
         if (showLevel) drawLevel(canvas)
         drawHud(canvas)
+        drawAspectRatioCrop(canvas)
+    }
+
+    private fun drawAspectRatioCrop(canvas: Canvas) {
+        if (aspectRatio == AspectRatio.FULL) return
+        val w = width.toFloat()
+        val h = height.toFloat()
+        val targetRatio = aspectRatio.w.toFloat() / aspectRatio.h.toFloat()
+        val viewRatio = w / h
+        if (targetRatio < viewRatio) {
+            // Crop sides: view is too wide → draw bars on left/right
+            val cropW = h * targetRatio
+            val barW = (w - cropW) / 2f
+            canvas.drawRect(0f, 0f, barW, h, cropBarPaint)
+            canvas.drawRect(w - barW, 0f, w, h, cropBarPaint)
+        } else {
+            // Crop top/bottom
+            val cropH = w / targetRatio
+            val barH = (h - cropH) / 2f
+            canvas.drawRect(0f, 0f, w, barH, cropBarPaint)
+            canvas.drawRect(0f, h - barH, w, h, cropBarPaint)
+        }
     }
 
     private fun drawGrid(canvas: Canvas) {
