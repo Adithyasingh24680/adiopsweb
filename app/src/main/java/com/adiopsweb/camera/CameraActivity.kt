@@ -3,6 +3,7 @@ package com.adiopsweb.camera
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.PointF
+import android.graphics.SurfaceTexture
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener

@@ -72,7 +72,7 @@ enum class WhiteBalance(val label: String, val awbMode: Int) {
     SHADE("Shade", android.hardware.camera2.CaptureRequest.CONTROL_AWB_MODE_SHADE),
     TUNGSTEN("Tungsten", android.hardware.camera2.CaptureRequest.CONTROL_AWB_MODE_INCANDESCENT),
     FLUORESCENT("Fluorescent", android.hardware.camera2.CaptureRequest.CONTROL_AWB_MODE_FLUORESCENT),
-    FLASH("Flash", android.hardware.camera2.CaptureRequest.CONTROL_AWB_MODE_FLASH)
+    TWILIGHT("Twilight", android.hardware.camera2.CaptureRequest.CONTROL_AWB_MODE_TWILIGHT)
 }
 
 /** Focus mode */

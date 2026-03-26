@@ -87,7 +87,7 @@ class Camera2Handler(
             if (facing != CameraCharacteristics.LENS_FACING_BACK) continue
 
             val focalLengths = chars.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)
-            if (focalLengths.isNullOrEmpty()) continue
+            if (focalLengths == null || focalLengths.isEmpty()) continue
 
             val fl = focalLengths[0]
             when (lens) {
