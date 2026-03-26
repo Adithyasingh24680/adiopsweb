@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="accent_gold">#FFFFD700</color>
+    <color name="accent_blue">#FF00BFFF</color>
+    <color name="overlay_bg">#CC000000</color>
+    <color name="shutter_outer">#FFFFFFFF</color>
+    <color name="shutter_inner">#FFFFFFFF</color>
+    <color name="record_red">#FFFF0000</color>
+</resources>

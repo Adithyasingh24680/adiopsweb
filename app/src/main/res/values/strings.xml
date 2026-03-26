@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ProCam 13</string>
+    <string name="capture">Capture</string>
+    <string name="flip_camera">Flip Camera</string>
+    <string name="gallery">Gallery</string>
+    <string name="photo_saved">Photo saved</string>
+    <string name="recording">Recording</string>
+</resources>
