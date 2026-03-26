@@ -109,7 +109,7 @@ class OverlayView @JvmOverloads constructor(
 
     private fun drawLevel(canvas: Canvas) {
         val cx = width / 2f
-        val cy = height - 120f
+        val cy = height / 2f  // centre of screen, not behind the shutter button
         val lineHalf = 100f
         val threshold = 1.5f
 
