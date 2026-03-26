@@ -115,9 +115,38 @@ class Camera2Handler(
         }
     }
 
+    // Actual buffer dimensions chosen for preview (landscape, camera-native)
+    private var bufW = 1920
+    private var bufH = 1080
+
+    /**
+     * Pick the best-fit landscape preview size from what the camera supports.
+     * Targets the screen's own aspect ratio (rotated to landscape) so the crop
+     * is minimal on the OnePlus 13's 20:9 panel (1440×3168 or 1080×2376).
+     */
+    private fun chooseBestPreviewSize(cameraId: String): Pair<Int, Int> {
+        val map = cameraManager.getCameraCharacteristics(cameraId)
+            .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+            ?: return Pair(1920, 1080)
+
+        val screenW = textureView.width.coerceAtLeast(1)
+        val screenH = textureView.height.coerceAtLeast(1)
+        // In portrait the long side is the height; as a landscape ratio that's h:w
+        val targetRatio = screenH.toFloat() / screenW.toFloat()
+
+        val best = map.getOutputSizes(android.graphics.SurfaceTexture::class.java)
+            ?.filter { it.width >= 1280 }
+            ?.minByOrNull { s ->
+                val r = s.width.toFloat() / s.height.toFloat()
+                kotlin.math.abs(r - targetRatio)
+            }
+        return if (best != null) Pair(best.width, best.height) else Pair(1920, 1080)
+    }
+
     /**
      * Rotate & scale the TextureView so the landscape camera buffer fills
-     * the portrait screen without stretching.
+     * the portrait screen without stretching (centre-crop, no black bars).
+     * Works for any screen resolution including OnePlus 13's 1440×3168.
      */
     private fun applyPreviewTransform() {
         val vW = textureView.width.toFloat()
@@ -131,12 +160,14 @@ class Camera2Handler(
         val cx = vW / 2f
         val cy = vH / 2f
 
-        // Rotate the landscape buffer (1920×1080) to portrait orientation
+        // Rotate landscape buffer to portrait orientation
         matrix.postRotate(sensorOrientation.toFloat(), cx, cy)
 
-        // After rotation the effective display size is 1080×1920; scale to fill screen
-        val effW = if (sensorOrientation % 180 == 90) 1080f else 1920f
-        val effH = if (sensorOrientation % 180 == 90) 1920f else 1080f
+        // After 90°/270° rotation bufW↔bufH swap: effective portrait = bufH × bufW
+        val effW = if (sensorOrientation % 180 == 90) bufH.toFloat() else bufW.toFloat()
+        val effH = if (sensorOrientation % 180 == 90) bufW.toFloat() else bufH.toFloat()
+
+        // Centre-crop scale: fill the screen, clip the smaller dimension
         val scale = maxOf(vW / effW, vH / effH)
         matrix.postScale(scale, scale, cx, cy)
 
@@ -147,10 +178,13 @@ class Camera2Handler(
     @Suppress("DEPRECATION")
     private fun createPreviewSession() {
         val texture = textureView.surfaceTexture ?: return
-        // Use a landscape buffer that the camera actually supports; we rotate in software
-        texture.setDefaultBufferSize(1920, 1080)
+
+        // Pick the best landscape preview size for this screen's aspect ratio
+        val (w, h) = chooseBestPreviewSize(getBackCameraId())
+        bufW = w; bufH = h
+        texture.setDefaultBufferSize(bufW, bufH)
         val previewSurface = Surface(texture)
-        // Apply transform on the main thread (TextureView must be touched on UI thread)
+        // Apply transform on UI thread
         android.os.Handler(android.os.Looper.getMainLooper()).post { applyPreviewTransform() }
 
         // ImageReader for still capture
