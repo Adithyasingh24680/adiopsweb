@@ -467,9 +467,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     private fun setupAspectRatio() {
         binding.btnRatioFull.setOnClickListener { setAspectRatio(AspectRatio.FULL) }
-        binding.btnRatio16_9.setOnClickListener { setAspectRatio(AspectRatio.R16_9) }
-        binding.btnRatio4_3.setOnClickListener { setAspectRatio(AspectRatio.R4_3) }
-        binding.btnRatio1_1.setOnClickListener { setAspectRatio(AspectRatio.R1_1) }
+        binding.btnRatioWide.setOnClickListener { setAspectRatio(AspectRatio.R16_9) }
+        binding.btnRatioStandard.setOnClickListener { setAspectRatio(AspectRatio.R4_3) }
+        binding.btnRatioSquare.setOnClickListener { setAspectRatio(AspectRatio.R1_1) }
         updateAspectRatioButtons()
     }
 
@@ -483,9 +483,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private fun updateAspectRatioButtons() {
         val orange = 0xFFFF8000.toInt(); val dim = 0x88FFFFFF.toInt()
         binding.btnRatioFull.setTextColor(if (aspectRatio == AspectRatio.FULL) orange else dim)
-        binding.btnRatio16_9.setTextColor(if (aspectRatio == AspectRatio.R16_9) orange else dim)
-        binding.btnRatio4_3.setTextColor(if (aspectRatio == AspectRatio.R4_3) orange else dim)
-        binding.btnRatio1_1.setTextColor(if (aspectRatio == AspectRatio.R1_1) orange else dim)
+        binding.btnRatioWide.setTextColor(if (aspectRatio == AspectRatio.R16_9) orange else dim)
+        binding.btnRatioStandard.setTextColor(if (aspectRatio == AspectRatio.R4_3) orange else dim)
+        binding.btnRatioSquare.setTextColor(if (aspectRatio == AspectRatio.R1_1) orange else dim)
     }
 
     // ── Pinch-to-zoom ─────────────────────────────────────────────────────────

@@ -296,58 +296,53 @@ class Camera2Handler(
             if (hasManualPP) {
                 when (colorProfile) {
                     ColorProfile.NATURAL -> {
-                        builder.set(CaptureRequest.CONTROL_TONEMAP_MODE,
-                            CaptureRequest.CONTROL_TONEMAP_MODE_FAST)
+                        builder.set(CaptureRequest.TONEMAP_MODE,
+                            CameraMetadata.TONEMAP_MODE_FAST)
                     }
                     ColorProfile.VIVID -> {
-                        builder.set(CaptureRequest.CONTROL_TONEMAP_MODE,
-                            CaptureRequest.CONTROL_TONEMAP_MODE_GAMMA_VALUE)
+                        builder.set(CaptureRequest.TONEMAP_MODE,
+                            CameraMetadata.TONEMAP_MODE_GAMMA_VALUE)
                         builder.set(CaptureRequest.TONEMAP_GAMMA, 1.6f)
                     }
                     ColorProfile.FLAT -> {
-                        builder.set(CaptureRequest.CONTROL_TONEMAP_MODE,
-                            CaptureRequest.CONTROL_TONEMAP_MODE_GAMMA_VALUE)
+                        builder.set(CaptureRequest.TONEMAP_MODE,
+                            CameraMetadata.TONEMAP_MODE_GAMMA_VALUE)
                         builder.set(CaptureRequest.TONEMAP_GAMMA, 3.2f)
                     }
                     ColorProfile.LOG -> {
-                        builder.set(CaptureRequest.CONTROL_TONEMAP_MODE,
-                            CaptureRequest.CONTROL_TONEMAP_MODE_GAMMA_VALUE)
+                        builder.set(CaptureRequest.TONEMAP_MODE,
+                            CameraMetadata.TONEMAP_MODE_GAMMA_VALUE)
                         builder.set(CaptureRequest.TONEMAP_GAMMA, 5.0f)
                     }
                     ColorProfile.WARM -> {
-                        builder.set(CaptureRequest.CONTROL_TONEMAP_MODE,
-                            CaptureRequest.CONTROL_TONEMAP_MODE_FAST)
-                        // Warm: boost R, pull B via gains
+                        builder.set(CaptureRequest.TONEMAP_MODE,
+                            CameraMetadata.TONEMAP_MODE_FAST)
                         builder.set(CaptureRequest.COLOR_CORRECTION_MODE,
-                            CaptureRequest.COLOR_CORRECTION_MODE_TRANSFORM_MATRIX)
+                            CameraMetadata.COLOR_CORRECTION_MODE_TRANSFORM_MATRIX)
                         builder.set(CaptureRequest.COLOR_CORRECTION_GAINS,
                             RggbChannelVector(1.4f, 1.0f, 1.0f, 0.7f))
                     }
                     ColorProfile.COOL -> {
-                        builder.set(CaptureRequest.CONTROL_TONEMAP_MODE,
-                            CaptureRequest.CONTROL_TONEMAP_MODE_FAST)
+                        builder.set(CaptureRequest.TONEMAP_MODE,
+                            CameraMetadata.TONEMAP_MODE_FAST)
                         builder.set(CaptureRequest.COLOR_CORRECTION_MODE,
-                            CaptureRequest.COLOR_CORRECTION_MODE_TRANSFORM_MATRIX)
+                            CameraMetadata.COLOR_CORRECTION_MODE_TRANSFORM_MATRIX)
                         builder.set(CaptureRequest.COLOR_CORRECTION_GAINS,
                             RggbChannelVector(0.7f, 1.0f, 1.0f, 1.4f))
                     }
                     ColorProfile.FILM_NOIR -> {
-                        // High-contrast dark look via S-curve tonemap
-                        builder.set(CaptureRequest.CONTROL_TONEMAP_MODE,
-                            CaptureRequest.CONTROL_TONEMAP_MODE_GAMMA_VALUE)
+                        builder.set(CaptureRequest.TONEMAP_MODE,
+                            CameraMetadata.TONEMAP_MODE_GAMMA_VALUE)
                         builder.set(CaptureRequest.TONEMAP_GAMMA, 1.3f)
                     }
                     ColorProfile.FADE -> {
-                        // Lifted blacks = high gamma
-                        builder.set(CaptureRequest.CONTROL_TONEMAP_MODE,
-                            CaptureRequest.CONTROL_TONEMAP_MODE_GAMMA_VALUE)
+                        builder.set(CaptureRequest.TONEMAP_MODE,
+                            CameraMetadata.TONEMAP_MODE_GAMMA_VALUE)
                         builder.set(CaptureRequest.TONEMAP_GAMMA, 2.8f)
                     }
                 }
             } else {
-                // No MANUAL_POST_PROCESSING: use CONTROL_TONEMAP_MODE_FAST for all
-                builder.set(CaptureRequest.CONTROL_TONEMAP_MODE,
-                    CaptureRequest.CONTROL_TONEMAP_MODE_FAST)
+                builder.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_FAST)
             }
         } catch (e: Exception) {
             Log.w(TAG, "Color profile not applied: ${e.message}")
