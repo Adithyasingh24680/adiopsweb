@@ -4,8 +4,16 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <circle android:fillColor="#FF000000" android:cx="54" android:cy="54" android:r="54" />
-    <path android:fillColor="#FFFFFFFF"
-        android:pathData="M72,38H60l-4,-6H52l-4,6H36a6,6,0,0,0-6,6V70a6,6,0,0,0,6,6H72a6,6,0,0,0,6-6V44A6,6,0,0,0,72,38ZM54,66A10,10,0,1,1,64,56,10,10,0,0,1,54,66Z" />
-    <circle android:fillColor="#FF000000" android:cx="54" android:cy="56" android:r="6" />
+    <!-- Black circle background -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M0,54 A54,54,0,1,0,108,54 A54,54,0,1,0,0,54 Z" />
+    <!-- Camera body outline -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M72,38H60l-4,-6H52l-4,6H36a6,6,0,0,0-6,6V70a6,6,0,0,0,6,6H72a6,6,0,0,0,6,-6V44A6,6,0,0,0,72,38ZM54,66A10,10,0,1,1,64,56,10,10,0,0,1,54,66Z" />
+    <!-- Lens inner -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M54,50 A6,6,0,1,0,54,62 A6,6,0,1,0,54,50 Z" />
 </vector>

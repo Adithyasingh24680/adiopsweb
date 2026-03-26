@@ -4,8 +4,14 @@
     android:height="36dp"
     android:viewportWidth="36"
     android:viewportHeight="36">
+    <!-- Outer ring -->
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.5"
+        android:fillColor="#00000000"
+        android:pathData="M4,18 A14,14,0,1,0,32,18 A14,14,0,1,0,4,18 Z" />
+    <!-- Inner filled circle -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M18,6C11.37,6 6,11.37 6,18C6,24.63 11.37,30 18,30C24.63,30 30,24.63 30,18C30,11.37 24.63,6 18,6ZM18,27C13.04,27 9,22.96 9,18C9,13.04 13.04,9 18,9C22.96,9 27,13.04 27,18C27,22.96 22.96,27 18,27Z" />
-    <circle android:fillColor="#FFFFFFFF" android:cx="18" android:cy="18" android:r="7" />
+        android:pathData="M11,18 A7,7,0,1,0,25,18 A7,7,0,1,0,11,18 Z" />
 </vector>

@@ -4,8 +4,14 @@
     android:height="36dp"
     android:viewportWidth="36"
     android:viewportHeight="36">
-    <circle android:fillColor="#00000000" android:cx="18" android:cy="18" android:r="14"
-        android:strokeColor="#FFFFFFFF" android:strokeWidth="2" />
-    <rect android:fillColor="#FFFF0000"
-        android:left="11" android:top="11" android:right="25" android:bottom="25" />
+    <!-- White outer ring -->
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.5"
+        android:fillColor="#00000000"
+        android:pathData="M4,18 A14,14,0,1,0,32,18 A14,14,0,1,0,4,18 Z" />
+    <!-- Red stop square -->
+    <path
+        android:fillColor="#FFFF0000"
+        android:pathData="M12,12 L24,12 L24,24 L12,24 Z" />
 </vector>
