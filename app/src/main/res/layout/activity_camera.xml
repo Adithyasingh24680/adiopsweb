@@ -7,11 +7,10 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <!-- ── Full-screen Camera Preview ───────────────────── -->
+    <!-- ── Full-screen preview ──────────────────────────────────────────── -->
     <TextureView
         android:id="@+id/textureView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="0dp" android:layout_height="0dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -19,481 +18,406 @@
 
     <com.adiopsweb.camera.ui.OverlayView
         android:id="@+id/overlayView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="0dp" android:layout_height="0dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <View
-        android:id="@+id/captureFlash"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="#FFFFFFFF"
-        android:alpha="0.85"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+    <!-- Capture flash -->
+    <View android:id="@+id/captureFlash"
+        android:layout_width="0dp" android:layout_height="0dp"
+        android:background="#FFFFFFFF" android:alpha="0.85" android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- ══════════ TOP BAR ══════════════════════════════ -->
+    <!-- ══ TOP BAR ══════════════════════════════════════════════════════════ -->
     <LinearLayout
         android:id="@+id/topBar"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:layout_width="0dp" android:layout_height="52dp"
+        android:orientation="horizontal" android:gravity="center_vertical"
+        android:paddingStart="8dp" android:paddingEnd="8dp"
         android:background="#CC000000"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Flash -->
-        <Button
-            android:id="@+id/btnFlash"
+        <Button android:id="@+id/btnFlash"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:text="⚡"
-            android:textSize="18sp"
-            android:textColor="#66FFFFFF"
-            android:minWidth="0dp"
-            android:padding="0dp" />
+            android:layout_width="44dp" android:layout_height="44dp"
+            android:text="⚡" android:textSize="17sp" android:textColor="#66FFFFFF"
+            android:minWidth="0dp" android:padding="0dp" />
 
-        <!-- HDR badge -->
-        <Button
-            android:id="@+id/btnHdr"
+        <Button android:id="@+id/btnHdr"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="44dp"
-            android:text="HDR"
-            android:textColor="#66FFFFFF"
-            android:textSize="11sp"
-            android:letterSpacing="0.08"
-            android:minWidth="0dp"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp" />
+            android:layout_width="wrap_content" android:layout_height="44dp"
+            android:text="HDR" android:textColor="#66FFFFFF" android:textSize="10sp"
+            android:letterSpacing="0.08" android:minWidth="0dp"
+            android:paddingStart="6dp" android:paddingEnd="6dp" />
 
-        <!-- RAW badge -->
-        <Button
-            android:id="@+id/btnRaw"
+        <Button android:id="@+id/btnRaw"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="44dp"
-            android:text="JPG"
-            android:textColor="#66FFFFFF"
-            android:textSize="11sp"
-            android:letterSpacing="0.08"
-            android:minWidth="0dp"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp" />
+            android:layout_width="wrap_content" android:layout_height="44dp"
+            android:text="JPG" android:textColor="#66FFFFFF" android:textSize="10sp"
+            android:letterSpacing="0.08" android:minWidth="0dp"
+            android:paddingStart="6dp" android:paddingEnd="6dp" />
+
+        <!-- Grid type cycle button -->
+        <Button android:id="@+id/btnGridType"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content" android:layout_height="44dp"
+            android:text="GRID" android:textColor="#66FFFFFF" android:textSize="10sp"
+            android:letterSpacing="0.05" android:minWidth="0dp"
+            android:paddingStart="6dp" android:paddingEnd="6dp" />
+
+        <!-- Histogram toggle -->
+        <Button android:id="@+id/btnHistogram"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content" android:layout_height="44dp"
+            android:text="HIST" android:textColor="#66FFFFFF" android:textSize="10sp"
+            android:letterSpacing="0.05" android:minWidth="0dp"
+            android:paddingStart="6dp" android:paddingEnd="6dp" />
 
         <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
 
-        <!-- Video recording timer (centre, visible only when recording) -->
-        <TextView
-            android:id="@+id/tvRecordTimer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="00:00"
-            android:textColor="#FFFF2020"
-            android:textSize="13sp"
-            android:fontFamily="monospace"
-            android:letterSpacing="0.05"
-            android:visibility="gone"
-            android:layout_marginEnd="8dp" />
+        <!-- Recording timer -->
+        <TextView android:id="@+id/tvRecordTimer"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="00:00" android:textColor="#FFFF2020" android:textSize="12sp"
+            android:fontFamily="monospace" android:visibility="gone"
+            android:layout_marginEnd="6dp" />
 
         <!-- Recording dot -->
-        <View
-            android:id="@+id/recordingIndicator"
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:background="#FFFF2020"
-            android:visibility="gone"
-            android:layout_marginEnd="8dp" />
+        <View android:id="@+id/recordingIndicator"
+            android:layout_width="8dp" android:layout_height="8dp"
+            android:background="#FFFF2020" android:visibility="gone"
+            android:layout_marginEnd="6dp" />
 
-        <!-- Grid toggle -->
-        <Button
-            android:id="@+id/btnGrid"
+        <Button android:id="@+id/btnMenu"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:text="⊞"
-            android:textColor="#66FFFFFF"
-            android:textSize="20sp"
-            android:minWidth="0dp"
-            android:padding="0dp" />
-
-        <!-- Menu / settings -->
-        <Button
-            android:id="@+id/btnMenu"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:text="≡"
-            android:textColor="#66FFFFFF"
-            android:textSize="22sp"
-            android:minWidth="0dp"
-            android:padding="0dp" />
-
+            android:layout_width="44dp" android:layout_height="44dp"
+            android:text="≡" android:textColor="#66FFFFFF" android:textSize="20sp"
+            android:minWidth="0dp" android:padding="0dp" />
     </LinearLayout>
 
-    <!-- ── Zoom level pill (centre, auto-hides) ─────────── -->
-    <TextView
-        android:id="@+id/tvZoomLevel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="1.0×"
-        android:textColor="#FFFFFFFF"
-        android:textSize="14sp"
+    <!-- Zoom pill -->
+    <TextView android:id="@+id/tvZoomLevel"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="1.0×" android:textColor="#FFFFFFFF" android:textSize="13sp"
         android:background="#88000000"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp"
+        android:paddingStart="14dp" android:paddingEnd="14dp"
+        android:paddingTop="5dp" android:paddingBottom="5dp"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/topBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp" />
+        android:layout_marginTop="10dp" />
 
-    <!-- ══════════ PRO MODE PANEL (top slide-down) ══════════ -->
-    <ScrollView
-        android:id="@+id/proPanel"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:background="#E6000000"
-        app:layout_constraintTop_toBottomOf="@id/topBar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
-                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
-                <TextView android:layout_width="80dp" android:layout_height="wrap_content"
-                    android:text="ISO" android:textColor="#88FFFFFF" android:textSize="11sp" android:letterSpacing="0.1" />
-                <Spinner android:id="@+id/spinnerIso" android:layout_width="0dp"
-                    android:layout_height="wrap_content" android:layout_weight="1"
-                    android:backgroundTint="#FFFF8000" android:popupBackground="#1C1C1C" />
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
-                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
-                <TextView android:layout_width="80dp" android:layout_height="wrap_content"
-                    android:text="SHUTTER" android:textColor="#88FFFFFF" android:textSize="11sp" android:letterSpacing="0.1" />
-                <Spinner android:id="@+id/spinnerShutter" android:layout_width="0dp"
-                    android:layout_height="wrap_content" android:layout_weight="1"
-                    android:backgroundTint="#FFFF8000" android:popupBackground="#1C1C1C" />
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
-                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
-                <TextView android:layout_width="80dp" android:layout_height="wrap_content"
-                    android:text="W.BAL" android:textColor="#88FFFFFF" android:textSize="11sp" android:letterSpacing="0.1" />
-                <Spinner android:id="@+id/spinnerWb" android:layout_width="0dp"
-                    android:layout_height="wrap_content" android:layout_weight="1"
-                    android:backgroundTint="#FFFF8000" android:popupBackground="#1C1C1C" />
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
-                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
-                <TextView android:layout_width="80dp" android:layout_height="wrap_content"
-                    android:text="FOCUS" android:textColor="#88FFFFFF" android:textSize="11sp" android:letterSpacing="0.1" />
-                <Spinner android:id="@+id/spinnerFocus" android:layout_width="0dp"
-                    android:layout_height="wrap_content" android:layout_weight="1"
-                    android:backgroundTint="#FFFF8000" android:popupBackground="#1C1C1C" />
-            </LinearLayout>
-
-            <SeekBar android:id="@+id/seekbarMf" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:layout_marginBottom="8dp"
-                android:progressTint="#FFFF8000" android:thumbTint="#FFFF8000" android:visibility="gone" />
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
-                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
-                <TextView android:layout_width="80dp" android:layout_height="wrap_content"
-                    android:text="EV" android:textColor="#88FFFFFF" android:textSize="11sp" android:letterSpacing="0.1" />
-                <SeekBar android:id="@+id/seekbarEv" android:layout_width="0dp"
-                    android:layout_height="wrap_content" android:layout_weight="1"
-                    android:progressTint="#FFFF8000" android:thumbTint="#FFFF8000" />
-                <TextView android:id="@+id/tvEvValue" android:layout_width="36dp"
-                    android:layout_height="wrap_content" android:text="0"
-                    android:textColor="#FFFF8000" android:textSize="12sp" android:gravity="center" />
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
-                android:orientation="horizontal" android:gravity="center_vertical">
-                <TextView android:layout_width="80dp" android:layout_height="wrap_content"
-                    android:text="PROFILE" android:textColor="#88FFFFFF" android:textSize="11sp" android:letterSpacing="0.1" />
-                <Spinner android:id="@+id/spinnerColorProfile" android:layout_width="0dp"
-                    android:layout_height="wrap_content" android:layout_weight="1"
-                    android:backgroundTint="#FFFF8000" android:popupBackground="#1C1C1C" />
-            </LinearLayout>
-
-        </LinearLayout>
-    </ScrollView>
-
-    <!-- ══════════ VIDEO SETTINGS (res + fps as segmented buttons) ══════════ -->
-    <LinearLayout
-        android:id="@+id/videoControlsPanel"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="#E6000000"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/topBar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <!-- Resolution row -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
-            android:orientation="horizontal" android:background="#1AFFFFFF"
-            android:layout_marginBottom="8dp">
-            <Button android:id="@+id/btnRes720" style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-                android:text="720p" android:textColor="#88FFFFFF" android:textSize="13sp" />
-            <Button android:id="@+id/btnRes1080" style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-                android:text="1080p" android:textColor="#FFFF8000" android:textSize="13sp" />
-            <Button android:id="@+id/btnRes4k" style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-                android:text="4K" android:textColor="#88FFFFFF" android:textSize="13sp" />
-        </LinearLayout>
-
-        <!-- FPS row: 24 / 30 / 60 / 120 / 240 -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
-            android:orientation="horizontal" android:background="#1AFFFFFF">
-            <Button android:id="@+id/btnFps24" style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-                android:text="24" android:textColor="#88FFFFFF" android:textSize="12sp" />
-            <Button android:id="@+id/btnFps30" style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-                android:text="30" android:textColor="#FFFF8000" android:textSize="12sp" />
-            <Button android:id="@+id/btnFps60" style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-                android:text="60" android:textColor="#88FFFFFF" android:textSize="12sp" />
-            <Button android:id="@+id/btnFps120" style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-                android:text="120" android:textColor="#88FFFFFF" android:textSize="12sp" />
-            <Button android:id="@+id/btnFps240" style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-                android:text="240" android:textColor="#88FFFFFF" android:textSize="12sp" />
-        </LinearLayout>
-
-        <!-- FPS label row -->
-        <TextView android:layout_width="match_parent" android:layout_height="16dp"
-            android:text="fps" android:textColor="#44FFFFFF" android:textSize="9sp"
-            android:gravity="center" android:layout_marginTop="2dp" />
-
-    </LinearLayout>
-
-    <!-- ══════════ PORTRAIT PANEL (depth of field) ══════════ -->
-    <LinearLayout
-        android:id="@+id/portraitPanel"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:background="#CC000000"
-        android:visibility="gone"
+    <!-- ══ PORTRAIT DOF BAR (portrait mode only) ════════════════════════════ -->
+    <LinearLayout android:id="@+id/portraitPanel"
+        android:layout_width="0dp" android:layout_height="48dp"
+        android:orientation="horizontal" android:gravity="center_vertical"
+        android:paddingStart="20dp" android:paddingEnd="20dp"
+        android:background="#CC000000" android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/lensSelector"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Strong" android:textColor="#88FFFFFF" android:textSize="12sp" />
-        <SeekBar android:id="@+id/seekbarBokeh" android:layout_width="0dp"
-            android:layout_height="wrap_content" android:layout_weight="1"
-            android:layout_marginStart="12dp" android:layout_marginEnd="12dp"
+            android:text="BLUR" android:textColor="#88FFFFFF" android:textSize="10sp"
+            android:letterSpacing="0.08" android:layout_marginEnd="8dp" />
+        <SeekBar android:id="@+id/seekbarBokeh"
+            android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
             android:max="100" android:progress="50"
             android:progressTint="#FFFF8000" android:thumbTint="#FFFF8000" />
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Weak" android:textColor="#88FFFFFF" android:textSize="12sp" />
+            android:text="OFF" android:textColor="#88FFFFFF" android:textSize="10sp"
+            android:letterSpacing="0.08" android:layout_marginStart="8dp" />
     </LinearLayout>
 
-    <!-- ══════════ ASPECT RATIO STRIP ══════════════════════ -->
-    <LinearLayout
-        android:id="@+id/aspectRatioBar"
-        android:layout_width="0dp"
-        android:layout_height="32dp"
-        android:orientation="horizontal"
-        android:gravity="center"
+    <!-- ══ ASPECT RATIO BAR ═════════════════════════════════════════════════ -->
+    <LinearLayout android:id="@+id/aspectRatioBar"
+        android:layout_width="0dp" android:layout_height="30dp"
+        android:orientation="horizontal" android:gravity="center"
         android:background="#99000000"
         app:layout_constraintBottom_toTopOf="@id/lensSelector"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <Button android:id="@+id/btnRatioFull"
-            style="@style/Widget.AppCompat.Button.Borderless"
+        <Button android:id="@+id/btnRatioFull" style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content" android:layout_height="match_parent"
-            android:text="FULL" android:textColor="#FFFF8000" android:textSize="10sp"
-            android:letterSpacing="0.05" android:minWidth="0dp"
-            android:paddingStart="16dp" android:paddingEnd="16dp" />
-
-        <View android:layout_width="1dp" android:layout_height="16dp"
-            android:background="#33FFFFFF" android:layout_marginStart="4dp" android:layout_marginEnd="4dp" />
-
-        <Button android:id="@+id/btnRatioWide"
-            style="@style/Widget.AppCompat.Button.Borderless"
+            android:text="FULL" android:textColor="#FFFF8000" android:textSize="9sp"
+            android:letterSpacing="0.06" android:minWidth="0dp"
+            android:paddingStart="14dp" android:paddingEnd="14dp" />
+        <View android:layout_width="1dp" android:layout_height="12dp" android:background="#33FFFFFF"
+            android:layout_marginStart="2dp" android:layout_marginEnd="2dp" />
+        <Button android:id="@+id/btnRatioWide" style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content" android:layout_height="match_parent"
-            android:text="16:9" android:textColor="#88FFFFFF" android:textSize="10sp"
-            android:letterSpacing="0.05" android:minWidth="0dp"
-            android:paddingStart="16dp" android:paddingEnd="16dp" />
-
-        <View android:layout_width="1dp" android:layout_height="16dp"
-            android:background="#33FFFFFF" android:layout_marginStart="4dp" android:layout_marginEnd="4dp" />
-
-        <Button android:id="@+id/btnRatioStandard"
-            style="@style/Widget.AppCompat.Button.Borderless"
+            android:text="16:9" android:textColor="#88FFFFFF" android:textSize="9sp"
+            android:letterSpacing="0.06" android:minWidth="0dp"
+            android:paddingStart="14dp" android:paddingEnd="14dp" />
+        <View android:layout_width="1dp" android:layout_height="12dp" android:background="#33FFFFFF"
+            android:layout_marginStart="2dp" android:layout_marginEnd="2dp" />
+        <Button android:id="@+id/btnRatioStandard" style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content" android:layout_height="match_parent"
-            android:text="4:3" android:textColor="#88FFFFFF" android:textSize="10sp"
-            android:letterSpacing="0.05" android:minWidth="0dp"
-            android:paddingStart="16dp" android:paddingEnd="16dp" />
-
-        <View android:layout_width="1dp" android:layout_height="16dp"
-            android:background="#33FFFFFF" android:layout_marginStart="4dp" android:layout_marginEnd="4dp" />
-
-        <Button android:id="@+id/btnRatioSquare"
-            style="@style/Widget.AppCompat.Button.Borderless"
+            android:text="4:3" android:textColor="#88FFFFFF" android:textSize="9sp"
+            android:letterSpacing="0.06" android:minWidth="0dp"
+            android:paddingStart="14dp" android:paddingEnd="14dp" />
+        <View android:layout_width="1dp" android:layout_height="12dp" android:background="#33FFFFFF"
+            android:layout_marginStart="2dp" android:layout_marginEnd="2dp" />
+        <Button android:id="@+id/btnRatioSquare" style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content" android:layout_height="match_parent"
-            android:text="1:1" android:textColor="#88FFFFFF" android:textSize="10sp"
-            android:letterSpacing="0.05" android:minWidth="0dp"
-            android:paddingStart="16dp" android:paddingEnd="16dp" />
-
+            android:text="1:1" android:textColor="#88FFFFFF" android:textSize="9sp"
+            android:letterSpacing="0.06" android:minWidth="0dp"
+            android:paddingStart="14dp" android:paddingEnd="14dp" />
     </LinearLayout>
 
-    <!-- ══════════ HORIZONTAL LENS SELECTOR ════════════════ -->
-    <LinearLayout
-        android:id="@+id/lensSelector"
-        android:layout_width="0dp"
-        android:layout_height="44dp"
-        android:orientation="horizontal"
-        android:gravity="center"
+    <!-- ══ LENS SELECTOR ════════════════════════════════════════════════════ -->
+    <LinearLayout android:id="@+id/lensSelector"
+        android:layout_width="0dp" android:layout_height="44dp"
+        android:orientation="horizontal" android:gravity="center"
         android:background="#CC000000"
-        app:layout_constraintBottom_toTopOf="@id/aspectRatioBar"
+        app:layout_constraintBottom_toTopOf="@id/controlStrip"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <Button
-            android:id="@+id/btnLensUltrawide"
+        <Button android:id="@+id/btnLensUltrawide"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="0.6"
-            android:textColor="#88FFFFFF"
-            android:textSize="13sp"
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:text="0.6×" android:textColor="#88FFFFFF" android:textSize="12sp"
             android:minWidth="0dp" />
-
-        <Button
-            android:id="@+id/btnLensWide"
+        <Button android:id="@+id/btnLensWide"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="1×"
-            android:textColor="#FFFF8000"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:minWidth="0dp" />
-
-        <Button
-            android:id="@+id/btnLensTele"
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:text="1×" android:textColor="#FFFF8000" android:textSize="14sp"
+            android:textStyle="bold" android:minWidth="0dp" />
+        <Button android:id="@+id/btnLensTele"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="3"
-            android:textColor="#88FFFFFF"
-            android:textSize="13sp"
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:text="3×" android:textColor="#88FFFFFF" android:textSize="12sp"
             android:minWidth="0dp" />
-
     </LinearLayout>
 
-    <!-- ══════════ MODE TABS ════════════════════════════════ -->
-    <LinearLayout
-        android:id="@+id/modeTabBar"
+    <!-- ══ UNIFIED CONTROL STRIP (always visible, horizontal scroll) ════════
+         Each chip shows current value and cycles through options on tap.
+         Organised: ISO · SS · WB · EV · FOCUS · PROFILE | RES · FPS · STAB
+    ═══════════════════════════════════════════════════════════════════════════ -->
+    <HorizontalScrollView
+        android:id="@+id/controlStrip"
         android:layout_width="0dp"
-        android:layout_height="40dp"
-        android:orientation="horizontal"
-        android:gravity="center"
+        android:layout_height="68dp"
+        android:scrollbars="none"
+        android:background="#E6000000"
+        android:fillViewport="false"
+        app:layout_constraintBottom_toTopOf="@id/modeTabBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
+
+            <!-- ISO -->
+            <LinearLayout android:layout_width="60dp" android:layout_height="54dp"
+                android:orientation="vertical" android:gravity="center"
+                android:background="#1AFFFFFF" android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="ISO" android:textColor="#88FFFFFF" android:textSize="8sp"
+                    android:letterSpacing="0.1" />
+                <Button android:id="@+id/btnCtrlIso"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Auto" android:textColor="#FFFF8000" android:textSize="11sp"
+                    android:minWidth="0dp" android:padding="0dp" />
+            </LinearLayout>
+
+            <!-- Shutter Speed -->
+            <LinearLayout android:layout_width="68dp" android:layout_height="54dp"
+                android:orientation="vertical" android:gravity="center"
+                android:background="#1AFFFFFF" android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="SHUTTER" android:textColor="#88FFFFFF" android:textSize="8sp"
+                    android:letterSpacing="0.1" />
+                <Button android:id="@+id/btnCtrlShutter"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Auto" android:textColor="#FFFF8000" android:textSize="11sp"
+                    android:minWidth="0dp" android:padding="0dp" />
+            </LinearLayout>
+
+            <!-- White Balance -->
+            <LinearLayout android:layout_width="60dp" android:layout_height="54dp"
+                android:orientation="vertical" android:gravity="center"
+                android:background="#1AFFFFFF" android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="W.BAL" android:textColor="#88FFFFFF" android:textSize="8sp"
+                    android:letterSpacing="0.1" />
+                <Button android:id="@+id/btnCtrlWb"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Auto" android:textColor="#FFFF8000" android:textSize="11sp"
+                    android:minWidth="0dp" android:padding="0dp" />
+            </LinearLayout>
+
+            <!-- EV -->
+            <LinearLayout android:layout_width="56dp" android:layout_height="54dp"
+                android:orientation="vertical" android:gravity="center"
+                android:background="#1AFFFFFF" android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="EV" android:textColor="#88FFFFFF" android:textSize="8sp"
+                    android:letterSpacing="0.1" />
+                <Button android:id="@+id/btnCtrlEv"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="0" android:textColor="#FFFF8000" android:textSize="11sp"
+                    android:minWidth="0dp" android:padding="0dp" />
+            </LinearLayout>
+
+            <!-- Focus -->
+            <LinearLayout android:layout_width="60dp" android:layout_height="54dp"
+                android:orientation="vertical" android:gravity="center"
+                android:background="#1AFFFFFF" android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="FOCUS" android:textColor="#88FFFFFF" android:textSize="8sp"
+                    android:letterSpacing="0.1" />
+                <Button android:id="@+id/btnCtrlFocus"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="C-AF" android:textColor="#FFFF8000" android:textSize="11sp"
+                    android:minWidth="0dp" android:padding="0dp" />
+            </LinearLayout>
+
+            <!-- Color Profile -->
+            <LinearLayout android:layout_width="60dp" android:layout_height="54dp"
+                android:orientation="vertical" android:gravity="center"
+                android:background="#1AFFFFFF" android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="PROFILE" android:textColor="#88FFFFFF" android:textSize="8sp"
+                    android:letterSpacing="0.1" />
+                <Button android:id="@+id/btnCtrlProfile"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Nat" android:textColor="#FFFF8000" android:textSize="11sp"
+                    android:minWidth="0dp" android:padding="0dp" />
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View android:layout_width="1dp" android:layout_height="36dp"
+                android:background="#33FFFFFF" android:layout_marginEnd="6dp" />
+
+            <!-- Resolution -->
+            <LinearLayout android:layout_width="64dp" android:layout_height="54dp"
+                android:orientation="vertical" android:gravity="center"
+                android:background="#1AFFFFFF" android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="RES" android:textColor="#88FFFFFF" android:textSize="8sp"
+                    android:letterSpacing="0.1" />
+                <Button android:id="@+id/btnCtrlRes"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="1080p" android:textColor="#FFFF8000" android:textSize="11sp"
+                    android:minWidth="0dp" android:padding="0dp" />
+            </LinearLayout>
+
+            <!-- Frame Rate -->
+            <LinearLayout android:layout_width="56dp" android:layout_height="54dp"
+                android:orientation="vertical" android:gravity="center"
+                android:background="#1AFFFFFF" android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="FPS" android:textColor="#88FFFFFF" android:textSize="8sp"
+                    android:letterSpacing="0.1" />
+                <Button android:id="@+id/btnCtrlFps"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="30" android:textColor="#FFFF8000" android:textSize="11sp"
+                    android:minWidth="0dp" android:padding="0dp" />
+            </LinearLayout>
+
+            <!-- Stabilization -->
+            <LinearLayout android:layout_width="56dp" android:layout_height="54dp"
+                android:orientation="vertical" android:gravity="center"
+                android:background="#1AFFFFFF" android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="STAB" android:textColor="#88FFFFFF" android:textSize="8sp"
+                    android:letterSpacing="0.1" />
+                <Button android:id="@+id/btnCtrlStab"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="ON" android:textColor="#FFFF8000" android:textSize="11sp"
+                    android:minWidth="0dp" android:padding="0dp" />
+            </LinearLayout>
+
+            <!-- Level indicator toggle -->
+            <LinearLayout android:layout_width="56dp" android:layout_height="54dp"
+                android:orientation="vertical" android:gravity="center"
+                android:background="#1AFFFFFF" android:layout_marginEnd="6dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="LEVEL" android:textColor="#88FFFFFF" android:textSize="8sp"
+                    android:letterSpacing="0.1" />
+                <Button android:id="@+id/btnCtrlLevel"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="ON" android:textColor="#FFFF8000" android:textSize="11sp"
+                    android:minWidth="0dp" android:padding="0dp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- ══ MODE TABS ════════════════════════════════════════════════════════ -->
+    <LinearLayout android:id="@+id/modeTabBar"
+        android:layout_width="0dp" android:layout_height="38dp"
+        android:orientation="horizontal" android:gravity="center"
         android:background="#CC000000"
         app:layout_constraintBottom_toTopOf="@id/bottomBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <Button android:id="@+id/tabPhoto"
-            style="@style/Widget.AppCompat.Button.Borderless"
+        <Button android:id="@+id/tabPhoto" style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-            android:text="PHOTO" android:textColor="#FFFF8000" android:textSize="10sp"
-            android:letterSpacing="0.08" />
-
-        <Button android:id="@+id/tabVideo"
-            style="@style/Widget.AppCompat.Button.Borderless"
+            android:text="PHOTO" android:textColor="#FFFF8000" android:textSize="9sp"
+            android:letterSpacing="0.08" android:minWidth="0dp" />
+        <Button android:id="@+id/tabVideo" style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-            android:text="VIDEO" android:textColor="#55FFFFFF" android:textSize="10sp"
-            android:letterSpacing="0.08" />
-
-        <Button android:id="@+id/tabPortrait"
-            style="@style/Widget.AppCompat.Button.Borderless"
+            android:text="VIDEO" android:textColor="#55FFFFFF" android:textSize="9sp"
+            android:letterSpacing="0.08" android:minWidth="0dp" />
+        <Button android:id="@+id/tabPortrait" style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-            android:text="PORTRAIT" android:textColor="#55FFFFFF" android:textSize="10sp"
-            android:letterSpacing="0.08" />
-
-        <Button android:id="@+id/tabPro"
-            style="@style/Widget.AppCompat.Button.Borderless"
+            android:text="PORTRAIT" android:textColor="#55FFFFFF" android:textSize="9sp"
+            android:letterSpacing="0.08" android:minWidth="0dp" />
+        <Button android:id="@+id/tabPro" style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-            android:text="PRO" android:textColor="#55FFFFFF" android:textSize="10sp"
-            android:letterSpacing="0.08" />
-
+            android:text="PRO" android:textColor="#55FFFFFF" android:textSize="9sp"
+            android:letterSpacing="0.08" android:minWidth="0dp" />
+        <Button android:id="@+id/tabCine" style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:text="CINE" android:textColor="#55FFFFFF" android:textSize="9sp"
+            android:letterSpacing="0.08" android:minWidth="0dp" />
     </LinearLayout>
 
-    <!-- ══════════ BOTTOM SHUTTER BAR ════════════════════════ -->
-    <LinearLayout
-        android:id="@+id/bottomBar"
-        android:layout_width="0dp"
-        android:layout_height="108dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
+    <!-- ══ SHUTTER BAR ══════════════════════════════════════════════════════ -->
+    <LinearLayout android:id="@+id/bottomBar"
+        android:layout_width="0dp" android:layout_height="100dp"
+        android:orientation="horizontal" android:gravity="center_vertical"
         android:background="#CC000000"
-        android:paddingStart="32dp"
-        android:paddingEnd="32dp"
+        android:paddingStart="28dp" android:paddingEnd="28dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Gallery thumbnail (rounded) -->
-        <ImageView
-            android:id="@+id/ivGallery"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            android:background="#22FFFFFF"
-            android:scaleType="centerCrop"
+        <ImageView android:id="@+id/ivGallery"
+            android:layout_width="52dp" android:layout_height="52dp"
+            android:background="#22FFFFFF" android:scaleType="centerCrop"
             android:src="@android:drawable/ic_menu_slideshow"
             android:contentDescription="Gallery" />
 
         <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
 
-        <!-- Shutter / Record button -->
-        <ImageButton
-            android:id="@+id/btnCapture"
-            android:layout_width="76dp"
-            android:layout_height="76dp"
+        <ImageButton android:id="@+id/btnCapture"
+            android:layout_width="76dp" android:layout_height="76dp"
             android:background="@drawable/shutter_button_bg"
             android:src="@drawable/ic_shutter"
             android:scaleType="center"
@@ -502,17 +426,13 @@
 
         <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
 
-        <!-- Flip camera (dark circle) -->
-        <ImageButton
-            android:id="@+id/btnFlipCamera"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
+        <ImageButton android:id="@+id/btnFlipCamera"
+            android:layout_width="52dp" android:layout_height="52dp"
             android:background="#22FFFFFF"
             android:src="@android:drawable/ic_menu_revert"
             android:tint="#AAFFFFFF"
             android:scaleType="center"
             android:contentDescription="Flip Camera" />
-
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

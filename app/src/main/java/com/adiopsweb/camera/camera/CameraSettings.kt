@@ -92,7 +92,15 @@ data class ProSettings(
     val exposureCompensation: Int = 0     // in steps
 )
 
-/** Shutter speed options for Pro mode */
+/** Grid overlay types */
+enum class GridType(val label: String) {
+    OFF("Off"),
+    THIRDS("3×3"),
+    GOLDEN("Golden"),
+    SQUARE("9×9")
+}
+
+
 val SHUTTER_SPEEDS = listOf(
     Pair("Auto", 0L),
     Pair("1/4000", 250L),
