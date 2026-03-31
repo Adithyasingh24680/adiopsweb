@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.graphics.ImageFormat
 import android.graphics.Matrix
+import android.graphics.RectF
 import android.graphics.Rect
 import android.hardware.camera2.*
 import android.hardware.camera2.params.MeteringRectangle
@@ -80,6 +81,13 @@ class Camera2Handler(
         } ?: "0"
     }
 
+    private fun getFrontCameraId(): String {
+        return cameraManager.cameraIdList.firstOrNull { id ->
+            cameraManager.getCameraCharacteristics(id)
+                .get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT
+        } ?: "1"
+    }
+
     @SuppressLint("MissingPermission")
     fun openCamera(lens: LensMode = currentLens) {
         currentLens = lens
@@ -95,35 +103,45 @@ class Camera2Handler(
         } catch (e: CameraAccessException) { onError("Cannot open camera: ${e.message}") }
     }
 
-    // ── Preview transform ────────────────────────────────────────────────────
+    // ── Preview transform (Google Camera2Video sample approach) ─────────────
     //
-    // The camera always outputs a LANDSCAPE buffer (bufW × bufH).
-    // The phone is in PORTRAIT. SENSOR_ORIENTATION = 90 for back cameras.
-    //
-    // Correct sequence (mathematically proven):
-    //   1. postScale(scale*bufW/vW, scale*bufH/vH)  — un-stretch + fill
-    //   2. postRotate(-so)                            — CCW correction
-    //
-    // Key: rotation must be NEGATIVE (CCW) for SO=90. Positive (CW) is wrong.
+    // Uses setRectToRect + uniform postScale + postRotate(+SO) for SO%180==90.
+    // For back camera SO=90: rotate CW +90°.
+    // For front camera SO=270: rotate CW +270° = effectively -90° (CCW).
     //
     private fun applyPreviewTransform() {
         val vW = textureView.width.toFloat()
         val vH = textureView.height.toFloat()
         if (vW == 0f || vH == 0f) return
 
-        val so = cameraManager.getCameraCharacteristics(getBackCameraId())
+        val cameraId = if (currentLens == LensMode.FRONT) getFrontCameraId() else getBackCameraId()
+        val so = cameraManager.getCameraCharacteristics(cameraId)
             .get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 90
 
         val matrix = Matrix()
-        val cx = vW / 2f; val cy = vH / 2f
+        val cx = vW / 2f
+        val cy = vH / 2f
 
-        val scale = if (so % 180 == 90) {
-            maxOf(vW / bufH.toFloat(), vH / bufW.toFloat())
+        if (so % 180 == 90) {
+            // Landscape buffer, portrait view:
+            // Map view rect → buffer rect with swapped dims so setRectToRect
+            // handles the aspect-ratio distortion, then postScale to fill, then rotate.
+            val viewRect   = RectF(0f, 0f, vW, vH)
+            val bufferRect = RectF(0f, 0f, bufH.toFloat(), bufW.toFloat())
+            bufferRect.offset(cx - bufferRect.centerX(), cy - bufferRect.centerY())
+            matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
+            val scale = maxOf(vW / bufH.toFloat(), vH / bufW.toFloat())
+            matrix.postScale(scale, scale, cx, cy)
+            // +SO degrees CW for back (SO=90 → +90°); front mirrors, use -SO
+            val rotAngle = if (currentLens == LensMode.FRONT) -so.toFloat() else so.toFloat()
+            matrix.postRotate(rotAngle, cx, cy)
         } else {
-            maxOf(vW / bufW.toFloat(), vH / bufH.toFloat())
+            // SO=0 or 180: no rotation needed, just uniform scale to fill
+            val scale = maxOf(vW / bufW.toFloat(), vH / bufH.toFloat())
+            matrix.postScale(scale, scale, cx, cy)
+            if (so == 180) matrix.postRotate(180f, cx, cy)
         }
-        matrix.postScale(scale * bufW / vW, scale * bufH / vH, cx, cy)
-        matrix.postRotate(-so.toFloat(), cx, cy)   // ← negative = CCW correction
+
         textureView.setTransform(matrix)
     }
 
