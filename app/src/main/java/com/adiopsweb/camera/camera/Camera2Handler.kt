@@ -49,6 +49,7 @@ class Camera2Handler(
     private var backgroundHandler: Handler? = null
 
     private var currentLens = LensMode.WIDE
+    private var isFrontCamera = false
     private var captureMode = CaptureMode.PHOTO
     private var videoResolution = VideoResolution.FHD_1080P
     private var frameRate = FrameRate.FPS_30
@@ -114,7 +115,7 @@ class Camera2Handler(
         val vH = textureView.height.toFloat()
         if (vW == 0f || vH == 0f) return
 
-        val cameraId = if (currentLens == LensMode.FRONT) getFrontCameraId() else getBackCameraId()
+        val cameraId = if (isFrontCamera) getFrontCameraId() else getBackCameraId()
         val so = cameraManager.getCameraCharacteristics(cameraId)
             .get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 90
 
@@ -133,7 +134,7 @@ class Camera2Handler(
             val scale = maxOf(vW / bufH.toFloat(), vH / bufW.toFloat())
             matrix.postScale(scale, scale, cx, cy)
             // +SO degrees CW for back (SO=90 → +90°); front mirrors, use -SO
-            val rotAngle = if (currentLens == LensMode.FRONT) -so.toFloat() else so.toFloat()
+            val rotAngle = if (isFrontCamera) -so.toFloat() else so.toFloat()
             matrix.postRotate(rotAngle, cx, cy)
         } else {
             // SO=0 or 180: no rotation needed, just uniform scale to fill
