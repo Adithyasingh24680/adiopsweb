@@ -49,6 +49,7 @@ class Camera2Handler(
 
     private var currentLens = LensMode.WIDE
     private var isFrontCamera = false
+    private var sensorOrientation = 90   // cached when camera opens
     private var captureMode = CaptureMode.PHOTO
     private var videoResolution = VideoResolution.FHD_1080P
     private var frameRate = FrameRate.FPS_30
@@ -74,26 +75,29 @@ class Camera2Handler(
         backgroundThread = null; backgroundHandler = null
     }
 
-    private fun getBackCameraId(): String {
-        return cameraManager.cameraIdList.firstOrNull { id ->
-            cameraManager.getCameraCharacteristics(id)
-                .get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK
-        } ?: "0"
+    private val backCameraId: String by lazy {
+        getCameraId(CameraCharacteristics.LENS_FACING_BACK, fallback = "0")
+    }
+    private val frontCameraId: String by lazy {
+        getCameraId(CameraCharacteristics.LENS_FACING_FRONT, fallback = "1")
     }
 
-    private fun getFrontCameraId(): String {
-        return cameraManager.cameraIdList.firstOrNull { id ->
+    private fun getCameraId(facing: Int, fallback: String): String =
+        cameraManager.cameraIdList.firstOrNull { id ->
             cameraManager.getCameraCharacteristics(id)
-                .get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT
-        } ?: "1"
-    }
+                .get(CameraCharacteristics.LENS_FACING) == facing
+        } ?: fallback
+
+    private fun activeCameraId() = if (isFrontCamera) frontCameraId else backCameraId
 
     @SuppressLint("MissingPermission")
     fun openCamera(lens: LensMode = currentLens) {
         currentLens = lens
         closeCamera()
+        sensorOrientation = cameraManager.getCameraCharacteristics(activeCameraId())
+            .get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 90
         try {
-            cameraManager.openCamera(getBackCameraId(), object : CameraDevice.StateCallback() {
+            cameraManager.openCamera(activeCameraId(), object : CameraDevice.StateCallback() {
                 override fun onOpened(camera: CameraDevice) { cameraDevice = camera; createPreviewSession() }
                 override fun onDisconnected(camera: CameraDevice) { camera.close(); cameraDevice = null }
                 override fun onError(camera: CameraDevice, error: Int) {
@@ -121,10 +125,7 @@ class Camera2Handler(
         val vH = textureView.height.toFloat()
         if (vW == 0f || vH == 0f) return
 
-        val cameraId = if (isFrontCamera) getFrontCameraId() else getBackCameraId()
-        val so = cameraManager.getCameraCharacteristics(cameraId)
-            .get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 90
-
+        val so = sensorOrientation
         val matrix = Matrix()
         val cx = vW / 2f
         val cy = vH / 2f
@@ -134,9 +135,7 @@ class Camera2Handler(
             // After +SO° rotation the buffer's short edge (bufH) maps to vW axis and
             // long edge (bufW) maps to vH axis, so we scale accordingly.
             val scale = maxOf(vW / bufH.toFloat(), vH / bufW.toFloat())
-            val sx = scale * bufH / vH   // note: bufH/vH, NOT bufW/vW
-            val sy = scale * bufW / vW   // note: bufW/vW, NOT bufH/vH
-            matrix.postScale(sx, sy, cx, cy)
+            matrix.postScale(scale * bufH / vH, scale * bufW / vW, cx, cy)
             matrix.postRotate(so.toFloat(), cx, cy)
         } else {
             val scale = maxOf(vW / bufW.toFloat(), vH / bufH.toFloat())
@@ -167,7 +166,7 @@ class Camera2Handler(
     @Suppress("DEPRECATION")
     private fun createPreviewSession() {
         val texture = textureView.surfaceTexture ?: return
-        val (w, h) = chooseBestPreviewSize(getBackCameraId())
+        val (w, h) = chooseBestPreviewSize(backCameraId)
         bufW = w; bufH = h
         texture.setDefaultBufferSize(bufW, bufH)
         val previewSurface = Surface(texture)
@@ -251,7 +250,7 @@ class Camera2Handler(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             b.set(CaptureRequest.CONTROL_ZOOM_RATIO, totalZoom)
         } else if (totalZoom > 1.0f) {
-            val chars = cameraManager.getCameraCharacteristics(getBackCameraId())
+            val chars = cameraManager.getCameraCharacteristics(backCameraId)
             val sensor = chars.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return
             val cW = (sensor.width() / totalZoom).toInt()
             val cH = (sensor.height() / totalZoom).toInt()
@@ -262,7 +261,7 @@ class Camera2Handler(
 
     private fun applyColorProfile(b: CaptureRequest.Builder) {
         try {
-            val caps = cameraManager.getCameraCharacteristics(getBackCameraId())
+            val caps = cameraManager.getCameraCharacteristics(backCameraId)
                 .get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES) ?: return
             if (caps.contains(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_MANUAL_POST_PROCESSING)) {
                 when (colorProfile) {
@@ -320,7 +319,7 @@ class Camera2Handler(
     fun triggerTapToFocus(normX: Float, normY: Float) {
         val camera = cameraDevice ?: return
         val session = captureSession ?: return
-        val chars = cameraManager.getCameraCharacteristics(getBackCameraId())
+        val chars = cameraManager.getCameraCharacteristics(backCameraId)
         val sensor = chars.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return
         val sz = 200
         val x = (normX * sensor.width()).toInt().coerceIn(sz, sensor.width() - sz)
@@ -446,7 +445,7 @@ class Camera2Handler(
 
     @Suppress("DEPRECATION")
     private fun startHighSpeedRecording(camera: CameraDevice, texture: android.graphics.SurfaceTexture) {
-        val chars = cameraManager.getCameraCharacteristics(getBackCameraId())
+        val chars = cameraManager.getCameraCharacteristics(backCameraId)
         val map = chars.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
         val hsSizes = map?.highSpeedVideoSizes
         val targetFps = frameRate.fps
