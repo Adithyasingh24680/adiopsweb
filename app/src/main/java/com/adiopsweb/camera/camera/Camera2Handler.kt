@@ -272,7 +272,7 @@ class Camera2Handler(
     private fun applyColorProfile(b: CaptureRequest.Builder) {
         try {
             val caps = cameraManager.getCameraCharacteristics(backCameraId)
-                .get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES) ?: emptyArray()
+                .get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES) ?: intArrayOf()
             val hasManualPP = caps.contains(
                 CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_MANUAL_POST_PROCESSING)
 
