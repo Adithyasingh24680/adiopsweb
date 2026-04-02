@@ -15,6 +15,7 @@ import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.view.*
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -56,6 +57,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private var resIndex = 1    // default 1080p
     private var fpsIndex = 1    // default 30fps
     private var stabOn = true
+
+    // Slider panel state
+    private enum class ActiveSlider { ISO, SHUTTER, EV, WB, FOCUS }
+    private var activeSlider: ActiveSlider? = null
 
     // Zoom
     private var scaleGestureDetector: ScaleGestureDetector? = null
@@ -358,56 +363,106 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         setupLevelControl()
     }
 
-    // ISO: Auto → 50 → 100 → 200 → 400 → 800 → 1600 → 3200 → 6400 → Auto
+    // ── Slider panel helper ───────────────────────────────────────────────────
+    private fun toggleSlider(
+        which: ActiveSlider,
+        label: String,
+        max: Int,
+        current: Int,
+        format: (Int) -> String,
+        onChange: (Int) -> Unit
+    ) {
+        if (activeSlider == which) {
+            binding.sliderPanel.visibility = View.GONE
+            activeSlider = null
+            return
+        }
+        activeSlider = which
+        binding.tvSliderLabel.text = label
+        binding.sliderControl.max = max
+        binding.sliderControl.progress = current.coerceIn(0, max)
+        binding.tvSliderValue.text = format(current.coerceIn(0, max))
+        binding.sliderControl.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
+                binding.tvSliderValue.text = format(progress)
+                onChange(progress)
+            }
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {}
+        })
+        binding.sliderPanel.visibility = View.VISIBLE
+    }
+
+    // ISO: tap chip → slider 0-8 (Auto/50/100/.../6400)
     private fun setupIsoControl() {
         val vals = ISO_VALUES
         binding.btnCtrlIso.setOnClickListener {
-            isoIndex = (isoIndex + 1) % vals.size
-            proSettings = proSettings.copy(iso = vals[isoIndex])
-            cameraHandler.setProSettings(proSettings)
-            binding.btnCtrlIso.text = if (vals[isoIndex] == 0) "Auto" else "${vals[isoIndex]}"
+            toggleSlider(ActiveSlider.ISO, "ISO", vals.size - 1, isoIndex,
+                { i -> if (vals[i] == 0) "Auto" else "${vals[i]}" }
+            ) { i ->
+                isoIndex = i
+                proSettings = proSettings.copy(iso = vals[i])
+                cameraHandler.setProSettings(proSettings)
+                binding.btnCtrlIso.text = if (vals[i] == 0) "Auto" else "${vals[i]}"
+            }
         }
     }
 
-    // Shutter: Auto → 1/4000 → ... → 4" → Auto
+    // Shutter: tap chip → slider over all SHUTTER_SPEEDS
     private fun setupShutterControl() {
         binding.btnCtrlShutter.setOnClickListener {
-            shutterIndex = (shutterIndex + 1) % SHUTTER_SPEEDS.size
-            proSettings = proSettings.copy(shutterUs = SHUTTER_SPEEDS[shutterIndex].second)
-            cameraHandler.setProSettings(proSettings)
-            binding.btnCtrlShutter.text = SHUTTER_SPEEDS[shutterIndex].first
+            toggleSlider(ActiveSlider.SHUTTER, "SHUTTER", SHUTTER_SPEEDS.size - 1, shutterIndex,
+                { i -> SHUTTER_SPEEDS[i].first }
+            ) { i ->
+                shutterIndex = i
+                proSettings = proSettings.copy(shutterUs = SHUTTER_SPEEDS[i].second)
+                cameraHandler.setProSettings(proSettings)
+                binding.btnCtrlShutter.text = SHUTTER_SPEEDS[i].first
+            }
         }
     }
 
-    // White balance cycle
+    // White balance: tap chip → slider over WB presets
     private fun setupWbControl() {
         val vals = WhiteBalance.values()
         binding.btnCtrlWb.setOnClickListener {
-            wbIndex = (wbIndex + 1) % vals.size
-            proSettings = proSettings.copy(whiteBalance = vals[wbIndex])
-            cameraHandler.setProSettings(proSettings)
-            binding.btnCtrlWb.text = vals[wbIndex].label.take(5)
+            toggleSlider(ActiveSlider.WB, "WHITE BAL", vals.size - 1, wbIndex,
+                { i -> vals[i].label }
+            ) { i ->
+                wbIndex = i
+                proSettings = proSettings.copy(whiteBalance = vals[i])
+                cameraHandler.setProSettings(proSettings)
+                binding.btnCtrlWb.text = vals[i].label.take(5)
+            }
         }
     }
 
-    // EV: -6 → -5 → ... → 0 → ... → +6 → -6 (step by 1)
+    // EV: tap chip → slider -6 to +6 (SeekBar 0-12, offset by 6)
     private fun setupEvControl() {
         binding.btnCtrlEv.setOnClickListener {
-            evValue = if (evValue >= 6) -6 else evValue + 1
-            proSettings = proSettings.copy(exposureCompensation = evValue)
-            cameraHandler.setProSettings(proSettings)
-            binding.btnCtrlEv.text = if (evValue >= 0) "+$evValue" else "$evValue"
+            toggleSlider(ActiveSlider.EV, "EV COMP", 12, evValue + 6,
+                { p -> val v = p - 6; if (v >= 0) "+$v" else "$v" }
+            ) { p ->
+                evValue = p - 6
+                proSettings = proSettings.copy(exposureCompensation = evValue)
+                cameraHandler.setProSettings(proSettings)
+                binding.btnCtrlEv.text = if (evValue >= 0) "+$evValue" else "$evValue"
+            }
         }
     }
 
-    // Focus: AF → C-AF → MF
+    // Focus: tap chip → slider over AF/C-AF/MF modes
     private fun setupFocusControl() {
         val vals = FocusMode.values()
         binding.btnCtrlFocus.setOnClickListener {
-            focusIndex = (focusIndex + 1) % vals.size
-            proSettings = proSettings.copy(focusMode = vals[focusIndex])
-            cameraHandler.setProSettings(proSettings)
-            binding.btnCtrlFocus.text = vals[focusIndex].label
+            toggleSlider(ActiveSlider.FOCUS, "FOCUS", vals.size - 1, focusIndex,
+                { i -> vals[i].label }
+            ) { i ->
+                focusIndex = i
+                proSettings = proSettings.copy(focusMode = vals[i])
+                cameraHandler.setProSettings(proSettings)
+                binding.btnCtrlFocus.text = vals[i].label
+            }
         }
     }
 

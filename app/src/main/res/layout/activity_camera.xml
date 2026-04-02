@@ -171,12 +171,39 @@
             android:paddingStart="14dp" android:paddingEnd="14dp" />
     </LinearLayout>
 
+    <!-- ══ MANUAL SLIDER PANEL (slides up when a chip is tapped) ════════════ -->
+    <LinearLayout android:id="@+id/sliderPanel"
+        android:layout_width="0dp" android:layout_height="52dp"
+        android:orientation="horizontal" android:gravity="center_vertical"
+        android:paddingStart="16dp" android:paddingEnd="16dp"
+        android:background="#EE000000" android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/controlStrip"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView android:id="@+id/tvSliderLabel"
+            android:layout_width="72dp" android:layout_height="wrap_content"
+            android:text="ISO" android:textColor="#88FFFFFF" android:textSize="9sp"
+            android:letterSpacing="0.1" />
+
+        <SeekBar android:id="@+id/sliderControl"
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:progressTint="#FFFF8000" android:thumbTint="#FFFF8000"
+            android:layout_marginEnd="12dp" />
+
+        <TextView android:id="@+id/tvSliderValue"
+            android:layout_width="80dp" android:layout_height="wrap_content"
+            android:text="Auto" android:textColor="#FFFF8000" android:textSize="13sp"
+            android:gravity="end" android:textStyle="bold" />
+    </LinearLayout>
+
     <!-- ══ LENS SELECTOR ════════════════════════════════════════════════════ -->
     <LinearLayout android:id="@+id/lensSelector"
         android:layout_width="0dp" android:layout_height="44dp"
         android:orientation="horizontal" android:gravity="center"
         android:background="#CC000000"
-        app:layout_constraintBottom_toTopOf="@id/controlStrip"
+        app:layout_constraintBottom_toTopOf="@id/sliderPanel"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
