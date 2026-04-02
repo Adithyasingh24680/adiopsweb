@@ -403,25 +403,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <Button android:id="@+id/tabPhoto" style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-            android:text="PHOTO" android:textColor="#FFFF8000" android:textSize="9sp"
-            android:letterSpacing="0.08" android:minWidth="0dp" />
-        <Button android:id="@+id/tabVideo" style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-            android:text="VIDEO" android:textColor="#55FFFFFF" android:textSize="9sp"
-            android:letterSpacing="0.08" android:minWidth="0dp" />
-        <Button android:id="@+id/tabPortrait" style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-            android:text="PORTRAIT" android:textColor="#55FFFFFF" android:textSize="9sp"
-            android:letterSpacing="0.08" android:minWidth="0dp" />
         <Button android:id="@+id/tabPro" style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-            android:text="PRO" android:textColor="#55FFFFFF" android:textSize="9sp"
+            android:text="PRO" android:textColor="#FFFF8000" android:textSize="11sp"
             android:letterSpacing="0.08" android:minWidth="0dp" />
         <Button android:id="@+id/tabCine" style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-            android:text="CINE" android:textColor="#55FFFFFF" android:textSize="9sp"
+            android:text="CINE" android:textColor="#55FFFFFF" android:textSize="11sp"
             android:letterSpacing="0.08" android:minWidth="0dp" />
     </LinearLayout>
 

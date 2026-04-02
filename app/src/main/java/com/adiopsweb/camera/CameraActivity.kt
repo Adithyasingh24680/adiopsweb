@@ -140,9 +140,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         )
         binding.textureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
             override fun onSurfaceTextureAvailable(s: SurfaceTexture, w: Int, h: Int) {
+                cameraHandler.setViewSize(w, h)
                 cameraHandler.openCamera(currentLens)
             }
-            override fun onSurfaceTextureSizeChanged(s: SurfaceTexture, w: Int, h: Int) {}
+            override fun onSurfaceTextureSizeChanged(s: SurfaceTexture, w: Int, h: Int) {
+                cameraHandler.setViewSize(w, h)
+            }
             override fun onSurfaceTextureDestroyed(s: SurfaceTexture) = true
             override fun onSurfaceTextureUpdated(s: SurfaceTexture) {}
         }
@@ -252,31 +255,21 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     // ── Mode tabs ─────────────────────────────────────────────────────────────
 
     private fun setupModeSelector() {
-        binding.tabPhoto.setOnClickListener { setMode(CaptureMode.PHOTO) }
-        binding.tabVideo.setOnClickListener { setMode(CaptureMode.VIDEO) }
-        binding.tabPortrait.setOnClickListener { setMode(CaptureMode.PORTRAIT) }
         binding.tabPro.setOnClickListener { setMode(CaptureMode.PRO) }
         binding.tabCine.setOnClickListener { setCinematicMode() }
-        setMode(CaptureMode.PHOTO)
+        setMode(CaptureMode.PRO)
     }
 
     private fun setMode(mode: CaptureMode) {
         captureMode = mode
         cameraHandler.setCaptureMode(mode)
-        // Portrait: switch to telephoto for natural shallow DOF
-        if (mode == CaptureMode.PORTRAIT && currentLens != LensMode.TELEPHOTO) {
-            switchLens(LensMode.TELEPHOTO)
-        }
-        binding.portraitPanel.isVisible = (mode == CaptureMode.PORTRAIT)
+        binding.portraitPanel.visibility = View.GONE
         val orange = 0xFFFF8000.toInt(); val dim = 0x55FFFFFF.toInt()
-        mapOf(binding.tabPhoto to CaptureMode.PHOTO, binding.tabVideo to CaptureMode.VIDEO,
-              binding.tabPortrait to CaptureMode.PORTRAIT, binding.tabPro to CaptureMode.PRO)
-            .forEach { (tab, m) -> tab.setTextColor(if (m == mode) orange else dim) }
+        binding.tabPro.setTextColor(if (mode == CaptureMode.PRO) orange else dim)
         binding.tabCine.setTextColor(dim)
         updateCaptureButton()
     }
 
-    /** Cinematic: 24fps, Flat/Log profile, 1×, widescreen 16:9 */
     private fun setCinematicMode() {
         captureMode = CaptureMode.VIDEO
         cameraHandler.setCaptureMode(CaptureMode.VIDEO)
@@ -286,8 +279,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         binding.btnCtrlFps.text = "24"
         binding.btnCtrlProfile.text = "Log"
         val orange = 0xFFFF8000.toInt(); val dim = 0x55FFFFFF.toInt()
-        listOf(binding.tabPhoto, binding.tabVideo, binding.tabPortrait, binding.tabPro)
-            .forEach { it.setTextColor(dim) }
+        binding.tabPro.setTextColor(dim)
         binding.tabCine.setTextColor(orange)
         updateCaptureButton()
         showSnack("Cinematic: 24fps · Log · 16:9")

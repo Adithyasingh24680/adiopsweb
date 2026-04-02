@@ -63,6 +63,13 @@ class Camera2Handler(
     private var digitalZoom = 1.0f
     private var bufW = 1920
     private var bufH = 1080
+    private var viewW = 0
+    private var viewH = 0
+
+    fun setViewSize(w: Int, h: Int) {
+        viewW = w; viewH = h
+        if (w > 0 && h > 0) applyPreviewTransform()
+    }
 
     fun startBackgroundThread() {
         backgroundThread = HandlerThread("CameraBackground").also { it.start() }
@@ -121,8 +128,10 @@ class Camera2Handler(
     // Verified: buffer corners map to exactly the expected portrait positions.
     //
     private fun applyPreviewTransform() {
-        val vW = textureView.width.toFloat()
-        val vH = textureView.height.toFloat()
+        // Use viewW/viewH set from SurfaceTexture callbacks (guaranteed correct dimensions).
+        // Fall back to textureView measured size only if not yet set.
+        val vW = (if (viewW > 0) viewW else textureView.width).toFloat()
+        val vH = (if (viewH > 0) viewH else textureView.height).toFloat()
         if (vW == 0f || vH == 0f) return
 
         val so = sensorOrientation
@@ -170,6 +179,7 @@ class Camera2Handler(
         bufW = w; bufH = h
         texture.setDefaultBufferSize(bufW, bufH)
         val previewSurface = Surface(texture)
+        // Apply transform on main thread — viewW/viewH set by setViewSize() from SurfaceTexture callbacks
         android.os.Handler(android.os.Looper.getMainLooper()).post { applyPreviewTransform() }
 
         imageReader = ImageReader.newInstance(4000, 3000,
@@ -262,30 +272,46 @@ class Camera2Handler(
     private fun applyColorProfile(b: CaptureRequest.Builder) {
         try {
             val caps = cameraManager.getCameraCharacteristics(backCameraId)
-                .get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES) ?: return
-            if (caps.contains(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_MANUAL_POST_PROCESSING)) {
+                .get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES) ?: emptyArray()
+            val hasManualPP = caps.contains(
+                CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_MANUAL_POST_PROCESSING)
+
+            // Always reset effect mode first so profiles don't stack
+            b.set(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_OFF)
+
+            if (hasManualPP) {
                 when (colorProfile) {
-                    ColorProfile.NATURAL  -> b.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_FAST)
-                    ColorProfile.VIVID    -> { b.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_GAMMA_VALUE); b.set(CaptureRequest.TONEMAP_GAMMA, 1.6f) }
-                    ColorProfile.FLAT     -> { b.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_GAMMA_VALUE); b.set(CaptureRequest.TONEMAP_GAMMA, 3.2f) }
-                    ColorProfile.LOG      -> { b.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_GAMMA_VALUE); b.set(CaptureRequest.TONEMAP_GAMMA, 5.0f) }
-                    ColorProfile.FILM_NOIR-> { b.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_GAMMA_VALUE); b.set(CaptureRequest.TONEMAP_GAMMA, 1.3f) }
-                    ColorProfile.FADE     -> { b.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_GAMMA_VALUE); b.set(CaptureRequest.TONEMAP_GAMMA, 2.8f) }
-                    ColorProfile.WARM     -> {
+                    ColorProfile.NATURAL   -> b.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_FAST)
+                    ColorProfile.VIVID     -> { b.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_GAMMA_VALUE); b.set(CaptureRequest.TONEMAP_GAMMA, 1.6f) }
+                    ColorProfile.FLAT      -> { b.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_GAMMA_VALUE); b.set(CaptureRequest.TONEMAP_GAMMA, 3.2f) }
+                    ColorProfile.LOG       -> { b.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_GAMMA_VALUE); b.set(CaptureRequest.TONEMAP_GAMMA, 5.0f) }
+                    ColorProfile.FILM_NOIR -> { b.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_FAST); b.set(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_MONO) }
+                    ColorProfile.FADE      -> { b.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_GAMMA_VALUE); b.set(CaptureRequest.TONEMAP_GAMMA, 2.8f) }
+                    ColorProfile.WARM      -> {
                         b.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_FAST)
                         b.set(CaptureRequest.COLOR_CORRECTION_MODE, CameraMetadata.COLOR_CORRECTION_MODE_TRANSFORM_MATRIX)
                         b.set(CaptureRequest.COLOR_CORRECTION_GAINS, RggbChannelVector(1.4f, 1.0f, 1.0f, 0.7f))
                     }
-                    ColorProfile.COOL     -> {
+                    ColorProfile.COOL      -> {
                         b.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_FAST)
                         b.set(CaptureRequest.COLOR_CORRECTION_MODE, CameraMetadata.COLOR_CORRECTION_MODE_TRANSFORM_MATRIX)
                         b.set(CaptureRequest.COLOR_CORRECTION_GAINS, RggbChannelVector(0.7f, 1.0f, 1.0f, 1.4f))
                     }
                 }
             } else {
+                // Fallback: CONTROL_EFFECT_MODE works on every device
                 b.set(CaptureRequest.TONEMAP_MODE, CameraMetadata.TONEMAP_MODE_FAST)
+                when (colorProfile) {
+                    ColorProfile.FILM_NOIR -> b.set(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_MONO)
+                    ColorProfile.FADE      -> b.set(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_SOLARIZE)
+                    ColorProfile.FLAT      -> b.set(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_SEPIA)
+                    ColorProfile.LOG       -> b.set(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_POSTERIZE)
+                    ColorProfile.WARM      -> b.set(CaptureRequest.CONTROL_AWB_MODE, CameraMetadata.CONTROL_AWB_MODE_INCANDESCENT)
+                    ColorProfile.COOL      -> b.set(CaptureRequest.CONTROL_AWB_MODE, CameraMetadata.CONTROL_AWB_MODE_DAYLIGHT)
+                    else -> { /* NATURAL, VIVID: device default */ }
+                }
             }
-        } catch (e: Exception) { Log.w(TAG, "Color profile skip: ${e.message}") }
+        } catch (e: Exception) { Log.w(TAG, "Color profile: ${e.message}") }
     }
 
     private fun applySceneMode(b: CaptureRequest.Builder) {
