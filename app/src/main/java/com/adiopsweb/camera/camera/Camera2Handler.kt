@@ -5,7 +5,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.graphics.ImageFormat
 import android.graphics.Matrix
-import android.graphics.RectF
 import android.graphics.Rect
 import android.hardware.camera2.*
 import android.hardware.camera2.params.MeteringRectangle
@@ -104,11 +103,18 @@ class Camera2Handler(
         } catch (e: CameraAccessException) { onError("Cannot open camera: ${e.message}") }
     }
 
-    // ── Preview transform (Google Camera2Video sample approach) ─────────────
+    // ── Preview transform ────────────────────────────────────────────────────
     //
-    // Uses setRectToRect + uniform postScale + postRotate(+SO) for SO%180==90.
-    // For back camera SO=90: rotate CW +90°.
-    // For front camera SO=270: rotate CW +270° = effectively -90° (CCW).
+    // TextureView default: buffer (bx,by) → view (bx·vW/bufW, by·vH/bufH).
+    // setTransform(M) applies M on top. M = S·R in post-concat means R first, S second.
+    //
+    // For SO=90 (back camera, portrait phone):
+    //   scale = max(vW/bufH, vH/bufW)
+    //   sx    = scale · bufH / vH   ← bufH (not bufW) because R swaps axes
+    //   sy    = scale · bufW / vW
+    //   postScale(sx, sy) then postRotate(+90)
+    //
+    // Verified: buffer corners map to exactly the expected portrait positions.
     //
     private fun applyPreviewTransform() {
         val vW = textureView.width.toFloat()
@@ -124,20 +130,15 @@ class Camera2Handler(
         val cy = vH / 2f
 
         if (so % 180 == 90) {
-            // Landscape buffer, portrait view:
-            // Map view rect → buffer rect with swapped dims so setRectToRect
-            // handles the aspect-ratio distortion, then postScale to fill, then rotate.
-            val viewRect   = RectF(0f, 0f, vW, vH)
-            val bufferRect = RectF(0f, 0f, bufH.toFloat(), bufW.toFloat())
-            bufferRect.offset(cx - bufferRect.centerX(), cy - bufferRect.centerY())
-            matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
+            // Buffer is landscape, view is portrait.
+            // After +SO° rotation the buffer's short edge (bufH) maps to vW axis and
+            // long edge (bufW) maps to vH axis, so we scale accordingly.
             val scale = maxOf(vW / bufH.toFloat(), vH / bufW.toFloat())
-            matrix.postScale(scale, scale, cx, cy)
-            // +SO degrees CW for back (SO=90 → +90°); front mirrors, use -SO
-            val rotAngle = if (isFrontCamera) -so.toFloat() else so.toFloat()
-            matrix.postRotate(rotAngle, cx, cy)
+            val sx = scale * bufH / vH   // note: bufH/vH, NOT bufW/vW
+            val sy = scale * bufW / vW   // note: bufW/vW, NOT bufH/vH
+            matrix.postScale(sx, sy, cx, cy)
+            matrix.postRotate(so.toFloat(), cx, cy)
         } else {
-            // SO=0 or 180: no rotation needed, just uniform scale to fill
             val scale = maxOf(vW / bufW.toFloat(), vH / bufH.toFloat())
             matrix.postScale(scale, scale, cx, cy)
             if (so == 180) matrix.postRotate(180f, cx, cy)
